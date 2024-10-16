@@ -2,23 +2,26 @@
 #include <SPI.h>
 #include <WiFiNINA.h>
 #include "Ultrasonic.h"
+#include "Images.h"
+//#include "locationObject.h"
 
 MKRIoTCarrier carrier;
 
 Ultrasonic ultrasonic(A6);
 
-void setup() {
-  // put your setup code here, to run once:
-  carrier.noCase();
-  carrier.begin();
-  Serial.begin(9600);
-
-  carrier.display.fillScreen(0xFFFF);
-}
-
+// SEPERATE INTO OWN CLASS
 float x, y, z;
 int lastX, lastY, lastZ;
 float lastHumidity, lastTemp;
+
+void setup() {
+  Serial.begin(9600);
+  carrier.noCase();
+  carrier.begin();
+
+  carrier.display.fillScreen(0xFFFFF);
+  drawLogo(0x021D30);
+}
 
 void loop() {
   //////////////////////////////
@@ -86,4 +89,11 @@ void loop() {
   }
 
   delay(100);
+}
+
+// Draw logo
+void drawLogo(uint16_t color) {
+  //carrier.display.drawBitmap(44, 60, ErgoLogo, 152, 72, color);
+  carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
+  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
