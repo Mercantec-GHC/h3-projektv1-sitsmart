@@ -1,10 +1,14 @@
-﻿namespace API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace API.Models
 {
-    public class SitSmartDevice : Common
+    public class SitSmartDevice
     {
-         
-        public required List<TempHumidity> TempHumiditys { get; set; }
-        public required List<Movement> Movements { get; set; }
-        public required List<DistanceObject> DistanceObjects { get; set; }
+        [Key]
+        public String Id { get; set; }
+        public required List<TempHumidity?> TempHumiditys { get; set; }
+        public required List<Movement?> Movements { get; set; }
+        public required List<DistanceObject?> DistanceObjects { get; set; }
+        public required List<UserSitSmart> Users { get; set; }
     }
 }

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using API.Models;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
+using System.Text;
 
 namespace API.Controllers
 {
@@ -15,13 +15,16 @@ namespace API.Controllers
     public class UsersController : ControllerBase
     {
         private readonly AppDBContext _context;
+        private readonly IConfiguration _configuration;
 
-        public UsersController(AppDBContext context)
+        public UsersController(AppDBContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         // GET: api/Users
+        [Authorize] // TODO: TILFØJ "(Roles = "Admin")" (Eksempel)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -32,7 +35,7 @@ namespace API.Controllers
                     Email = item.Email,
                     Name = item.Name,
                 }
-            
+
             ).ToListAsync();
 
             return Ok(users);
@@ -40,9 +43,9 @@ namespace API.Controllers
 
         // GET: api/Users/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<User>> GetUser(String id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = _context.Users.Where(item => item.Id == id).First();
 
             if (user == null)
             {
@@ -96,7 +99,8 @@ namespace API.Controllers
             if (await _context.Users.AnyAsync(item => item.Email == newUser.Email))
             {
                 return Conflict(new { message = "Email is already in use." });
-            } else if (!isValidEmail(newUser.Email))
+            }
+            else if (!isValidEmail(newUser.Email))
             {
                 return Conflict(new { message = "Email is not valid." });
             }
@@ -113,16 +117,30 @@ namespace API.Controllers
             }
             catch (DbUpdateException)
             {
-                if (UserExists(newUser.Id)) 
+                if (UserExists(newUser.Id))
                 {
                     return Conflict();
-                } else
+                }
+                else
                 {
                     throw;
                 }
             }
 
             return Ok(new { newUser.Id, newUser.Name });
+        }
+
+        // POST: api/Users/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDTO login)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == login.Email);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(login.Password, user.Password))
+            {
+                return Unauthorized(new { message = "Invalid email or password." });
+            }
+            var token = GenerateJwtToken(user);
+            return Ok(new { token, user.Name, user.Id });
         }
 
         // DELETE: api/Users/5
@@ -141,6 +159,7 @@ namespace API.Controllers
             return NoContent();
         }
 
+        // TODO: Lav på front end???
         private bool IsPasswordSecure(string Password)
         {
             // Minimum 8 chars, one or more upper case, one or more lower case, one number and one special character
@@ -168,12 +187,36 @@ namespace API.Controllers
                 Salt = salt,
                 // REMOVE FROM PRODUCTION
                 RealPassword = signUpDTO.Password,
+                SitSmarts = [],
             };
         }
 
         private bool UserExists(String id)
         {
             return _context.Users.Any(e => e.Id == id);
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.Name, user.Name)
+            };
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
+            (_configuration["JwtSettings:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                _configuration["JwtSettings:Issuer"],
+                _configuration["JwtSettings:Audience"],
+                claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
