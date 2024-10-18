@@ -162,20 +162,20 @@ namespace API.Controllers
         }
 
         // TODO: Lav på front end???
-        private bool IsPasswordSecure(string Password)
+        private bool IsPasswordSecure(String Password)
         {
             return new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$").IsMatch(Password);
         }
 
-        private bool isValidEmail(string Email)
+        private bool isValidEmail(String Email)
         {
             return new Regex(@"(?>(?:[0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+)[a-zA-Z]{2,9}").IsMatch(Email);
         }
 
         private User MapSignUpDTOToUser(SignUpDTO signUpDTO)
         {
-            string hashedPassword = BCrypt.Net.BCrypt.HashPassword(signUpDTO.Password);
-            string salt = hashedPassword.Substring(0, 29);
+            String hashedPassword = BCrypt.Net.BCrypt.HashPassword(signUpDTO.Password);
+            String salt = hashedPassword.Substring(0, 29);
 
             return new User
             {
@@ -197,7 +197,7 @@ namespace API.Controllers
             return _context.Users.Any(e => e.Id == id);
         }
 
-        private string GenerateJwtToken(User user)
+        private String GenerateJwtToken(User user)
         {
             var claims = new[]
             {
@@ -206,8 +206,7 @@ namespace API.Controllers
                 new Claim(ClaimTypes.Name, user.Name)
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes
-            (_configuration["JwtSettings:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key")));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
