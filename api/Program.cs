@@ -32,15 +32,16 @@ namespace API
             });
 
             IConfiguration Configuration = builder.Configuration;
-            var a = Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DefaultConnection");
-            var b = Configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer");
-            var c = Configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("Audience");
-            var d = Configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key");
+            Console.WriteLine("start");
+            var Connection = Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DefaultConnection");
+            var issuer = Configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer");
+            var audience = Configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("Audience");
+            var key = Configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key");
             
-            Console.WriteLine("CONNECTION: " + a);
-            Console.WriteLine("Issuer: " + b);
-            Console.WriteLine("Audience: " + c);
-            Console.WriteLine("Key: " + d);
+            Console.WriteLine("Connection: " + Connection);
+            Console.WriteLine("Issuer: " + issuer);
+            Console.WriteLine("Audience: " + audience);
+            Console.WriteLine("Key: " + key);
 
 
             string connectionString = Configuration.GetConnectionString("DefaultConnection")
@@ -78,9 +79,7 @@ namespace API
             app.UseCors(x => x.AllowAnyMethod().AllowAnyHeader().SetIsOriginAllowed(origin => true).AllowCredentials());
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
+            app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
@@ -90,9 +89,8 @@ namespace API
                 {   
                     options
                         .WithDefaultHttpClient(ScalarTarget.C, ScalarClient.Libcurl)
-                        .OpenApiRoutePattern = "/swagger/v1/swagger.json";
-                });
-            }
+                   .OpenApiRoutePattern = "/swagger/v1/swagger.json";
+            });
 
             app.UseHttpsRedirection();
 
