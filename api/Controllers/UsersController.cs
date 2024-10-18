@@ -45,7 +45,7 @@ namespace API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(String id)
         {
-            var user = _context.Users.Where(item => item.Id == id).First();
+            var user = await _context.Users.FindAsync(id);
 
             if (user == null)
             {
