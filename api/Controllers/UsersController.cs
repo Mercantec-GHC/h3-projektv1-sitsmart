@@ -164,13 +164,12 @@ namespace API.Controllers
         // TODO: Lav på front end???
         private bool IsPasswordSecure(string Password)
         {
-            // Minimum 8 chars, one or more upper case, one or more lower case, one number and one special character
-            return new Regex(@"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$ %^&*-]).{8,}$").IsMatch(Password);
+            return new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$").IsMatch(Password);
         }
 
         private bool isValidEmail(string Email)
         {
-            return new Regex(@"^[\\w\\-\\.]+@([\\w-]+\\.)+[\\w-]{2,}$").IsMatch(Email);
+            return new Regex(@"(?>(?:[0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+)[a-zA-Z]{2,9}").IsMatch(Email);
         }
 
         private User MapSignUpDTOToUser(SignUpDTO signUpDTO)
