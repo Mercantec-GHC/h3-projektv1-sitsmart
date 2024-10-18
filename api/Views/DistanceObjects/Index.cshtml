@@ -13,7 +13,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Length)
+                @Html.DisplayNameFor(model => model.Distance)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CreatedAt)
@@ -25,7 +25,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.Length)
+                @Html.DisplayFor(modelItem => item.Distance)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)

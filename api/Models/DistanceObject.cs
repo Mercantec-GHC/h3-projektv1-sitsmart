@@ -2,7 +2,7 @@
 {
     public class DistanceObject : Common
     {
-        public required int Length { get; set; }
+        public required int Distance { get; set; }
         public string sitSmartDeviceId { get; set; }
         public SitSmartDevice sitSmartDevice { get; set; }
     }
