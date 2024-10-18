@@ -16,4 +16,6 @@ public class AppDBContext : DbContext
     public DbSet<SitSmartDevice> sitSmartDevices { get; set; }
 
 public DbSet<API.Models.SitSmartDevice> SitSmartDevice { get; set; } = default!;
+
+public DbSet<API.Models.UserSitSmart> UserSitSmart { get; set; } = default!;
 }
