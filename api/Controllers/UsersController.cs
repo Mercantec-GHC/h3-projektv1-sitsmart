@@ -210,8 +210,8 @@ namespace API.Controllers
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                _configuration["JwtSettings:Issuer"],
-                _configuration["JwtSettings:Audience"],
+                _configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer"),
+                _configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("Audience"),
                 claims,
                 expires: DateTime.Now.AddMinutes(30),
                 signingCredentials: creds);
