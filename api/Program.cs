@@ -1,5 +1,8 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -21,7 +24,24 @@ namespace API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDataProtection().UseCryptographicAlgorithms(
+            new AuthenticatedEncryptorConfiguration
+            {
+                EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+            });
+
             IConfiguration Configuration = builder.Configuration;
+            var a = Configuration.GetConnectionString("DefaultConnection") ?? Environment.GetEnvironmentVariable("DefaultConnection");
+            var b = Configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer");
+            var c = Configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("Audience");
+            var d = Configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key");
+            
+            Console.WriteLine("CONNECTION: " + a);
+            Console.WriteLine("Issuer: " + b);
+            Console.WriteLine("Audience: " + c);
+            Console.WriteLine("Key: " + d);
+
 
             string connectionString = Configuration.GetConnectionString("DefaultConnection")
                                         ?? Environment.GetEnvironmentVariable("DefaultConnection");
