@@ -6,9 +6,9 @@ namespace API.Models
     {
         [Key]
         public int Id { get; set; }
-        public required String UserId;
-        public required List<User> Users;
-        public required String SitSmartId;
-        public required List<SitSmartDevice?> Devices;
+        public required String UserId { get; set; }
+        public required List<User> Users { get; set; }
+        public required String SitSmartId { get; set; }
+        public required List<SitSmartDevice?> Devices { get; set; }
     }
 }

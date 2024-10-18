@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class initDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -46,7 +46,7 @@ namespace API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    Length = table.Column<int>(type: "integer", nullable: false),
+                    Distance = table.Column<int>(type: "integer", nullable: false),
                     sitSmartDeviceId = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -66,9 +66,9 @@ namespace API.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    XValue = table.Column<float>(type: "real", nullable: false),
-                    YValue = table.Column<float>(type: "real", nullable: false),
-                    ZValue = table.Column<float>(type: "real", nullable: false),
+                    XValue = table.Column<int>(type: "integer", nullable: false),
+                    YValue = table.Column<int>(type: "integer", nullable: false),
+                    ZValue = table.Column<int>(type: "integer", nullable: false),
                     sitSmartDeviceId = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },

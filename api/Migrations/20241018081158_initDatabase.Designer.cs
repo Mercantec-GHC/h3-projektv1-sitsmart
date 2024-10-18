@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20241017101902_init")]
-    partial class init
+    [Migration("20241018081158_initDatabase")]
+    partial class initDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -32,7 +32,7 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Length")
+                    b.Property<int>("Distance")
                         .HasColumnType("integer");
 
                     b.Property<string>("sitSmartDeviceId")
@@ -54,14 +54,14 @@ namespace API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<float>("XValue")
-                        .HasColumnType("real");
+                    b.Property<int>("XValue")
+                        .HasColumnType("integer");
 
-                    b.Property<float>("YValue")
-                        .HasColumnType("real");
+                    b.Property<int>("YValue")
+                        .HasColumnType("integer");
 
-                    b.Property<float>("ZValue")
-                        .HasColumnType("real");
+                    b.Property<int>("ZValue")
+                        .HasColumnType("integer");
 
                     b.Property<string>("sitSmartDeviceId")
                         .IsRequired()

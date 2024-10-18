@@ -28,8 +28,8 @@
 
     public class SignUpDTO
     {
-        public String Email { get; set; }
-        public String Name { get; set; }
-        public String Password { get; set; }
+        public required String Email { get; set; }
+        public required String Name { get; set; }
+        public required String Password { get; set; }
     }
 }
