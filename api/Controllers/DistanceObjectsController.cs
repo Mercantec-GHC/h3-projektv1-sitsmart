@@ -29,7 +29,7 @@ namespace API.Controllers
 
         // GET: api/DistanceObjects/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<DistanceObject>> GetDistanceObject(int id)
+        public async Task<ActionResult<DistanceObject>> GetDistanceObject(string id)
         {
             var distanceObject = await _context.DistanceObjects.FindAsync(id);
 
@@ -44,7 +44,7 @@ namespace API.Controllers
         // PUT: api/DistanceObjects/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDistanceObject(String id, DistanceObject distanceObject)
+        public async Task<IActionResult> PutDistanceObject(string id, DistanceObject distanceObject)
         {
             if (id != distanceObject.Id)
             {
@@ -78,14 +78,28 @@ namespace API.Controllers
         public async Task<ActionResult<DistanceObject>> PostDistanceObject(DistanceObject distanceObject)
         {
             _context.DistanceObjects.Add(distanceObject);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (DistanceObjectExists(distanceObject.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return CreatedAtAction("GetDistanceObject", new { id = distanceObject.Id }, distanceObject);
         }
 
         // DELETE: api/DistanceObjects/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDistanceObject(int id)
+        public async Task<IActionResult> DeleteDistanceObject(string id)
         {
             var distanceObject = await _context.DistanceObjects.FindAsync(id);
             if (distanceObject == null)
@@ -99,7 +113,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        private bool DistanceObjectExists(String id)
+        private bool DistanceObjectExists(string id)
         {
             return _context.DistanceObjects.Any(e => e.Id == id);
         }

@@ -29,7 +29,7 @@ namespace API.Controllers
 
         // GET: api/SitSmartDevices/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<SitSmartDevice>> GetSitSmartDevice(int id)
+        public async Task<ActionResult<SitSmartDevice>> GetSitSmartDevice(string id)
         {
             var sitSmartDevice = await _context.sitSmartDevices.FindAsync(id);
 
@@ -44,7 +44,7 @@ namespace API.Controllers
         // PUT: api/SitSmartDevices/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSitSmartDevice(String id, SitSmartDevice sitSmartDevice)
+        public async Task<IActionResult> PutSitSmartDevice(string id, SitSmartDevice sitSmartDevice)
         {
             if (id != sitSmartDevice.Id)
             {
@@ -78,14 +78,28 @@ namespace API.Controllers
         public async Task<ActionResult<SitSmartDevice>> PostSitSmartDevice(SitSmartDevice sitSmartDevice)
         {
             _context.sitSmartDevices.Add(sitSmartDevice);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (SitSmartDeviceExists(sitSmartDevice.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return CreatedAtAction("GetSitSmartDevice", new { id = sitSmartDevice.Id }, sitSmartDevice);
         }
 
         // DELETE: api/SitSmartDevices/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSitSmartDevice(int id)
+        public async Task<IActionResult> DeleteSitSmartDevice(string id)
         {
             var sitSmartDevice = await _context.sitSmartDevices.FindAsync(id);
             if (sitSmartDevice == null)
@@ -99,7 +113,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        private bool SitSmartDeviceExists(String id)
+        private bool SitSmartDeviceExists(string id)
         {
             return _context.sitSmartDevices.Any(e => e.Id == id);
         }

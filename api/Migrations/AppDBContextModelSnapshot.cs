@@ -23,11 +23,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.DistanceObject", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -35,29 +32,24 @@ namespace API.Migrations
                     b.Property<int>("Length")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SitSmartDeviceId")
-                        .HasColumnType("integer");
+                    b.Property<string>("sitSmartDeviceId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SitSmartDeviceId");
+                    b.HasIndex("sitSmartDeviceId");
 
                     b.ToTable("DistanceObjects");
                 });
 
             modelBuilder.Entity("API.Models.Movement", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("SitSmartDeviceId")
-                        .HasColumnType("integer");
 
                     b.Property<float>("XValue")
                         .HasColumnType("real");
@@ -68,23 +60,21 @@ namespace API.Migrations
                     b.Property<float>("ZValue")
                         .HasColumnType("real");
 
+                    b.Property<string>("sitSmartDeviceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("SitSmartDeviceId");
+                    b.HasIndex("sitSmartDeviceId");
 
                     b.ToTable("MovementObjects");
                 });
 
             modelBuilder.Entity("API.Models.SitSmartDevice", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -93,11 +83,8 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.TempHumidity", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -105,26 +92,24 @@ namespace API.Migrations
                     b.Property<int>("Humidity")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SitSmartDeviceId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Temp")
                         .HasColumnType("integer");
 
+                    b.Property<string>("sitSmartDeviceId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("SitSmartDeviceId");
+                    b.HasIndex("sitSmartDeviceId");
 
                     b.ToTable("TempHumidityObjects");
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -132,6 +117,9 @@ namespace API.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime>("LastLogin")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -154,25 +142,71 @@ namespace API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("API.Models.UserSitSmart", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("SitSmartDeviceId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UserId1")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SitSmartDeviceId");
+
+                    b.HasIndex("UserId1");
+
+                    b.ToTable("UserSitSmart");
+                });
+
             modelBuilder.Entity("API.Models.DistanceObject", b =>
                 {
-                    b.HasOne("API.Models.SitSmartDevice", null)
+                    b.HasOne("API.Models.SitSmartDevice", "sitSmartDevice")
                         .WithMany("DistanceObjects")
-                        .HasForeignKey("SitSmartDeviceId");
+                        .HasForeignKey("sitSmartDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("sitSmartDevice");
                 });
 
             modelBuilder.Entity("API.Models.Movement", b =>
                 {
-                    b.HasOne("API.Models.SitSmartDevice", null)
+                    b.HasOne("API.Models.SitSmartDevice", "sitSmartDevice")
                         .WithMany("Movements")
-                        .HasForeignKey("SitSmartDeviceId");
+                        .HasForeignKey("sitSmartDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("sitSmartDevice");
                 });
 
             modelBuilder.Entity("API.Models.TempHumidity", b =>
                 {
-                    b.HasOne("API.Models.SitSmartDevice", null)
+                    b.HasOne("API.Models.SitSmartDevice", "sitSmartDevice")
                         .WithMany("TempHumiditys")
+                        .HasForeignKey("sitSmartDeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("sitSmartDevice");
+                });
+
+            modelBuilder.Entity("API.Models.UserSitSmart", b =>
+                {
+                    b.HasOne("API.Models.SitSmartDevice", null)
+                        .WithMany("Users")
                         .HasForeignKey("SitSmartDeviceId");
+
+                    b.HasOne("API.Models.User", null)
+                        .WithMany("SitSmarts")
+                        .HasForeignKey("UserId1");
                 });
 
             modelBuilder.Entity("API.Models.SitSmartDevice", b =>
@@ -182,6 +216,13 @@ namespace API.Migrations
                     b.Navigation("Movements");
 
                     b.Navigation("TempHumiditys");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("API.Models.User", b =>
+                {
+                    b.Navigation("SitSmarts");
                 });
 #pragma warning restore 612, 618
         }

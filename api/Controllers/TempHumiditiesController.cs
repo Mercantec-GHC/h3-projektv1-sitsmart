@@ -29,7 +29,7 @@ namespace API.Controllers
 
         // GET: api/TempHumidities/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TempHumidity>> GetTempHumidity(int id)
+        public async Task<ActionResult<TempHumidity>> GetTempHumidity(string id)
         {
             var tempHumidity = await _context.TempHumidityObjects.FindAsync(id);
 
@@ -44,7 +44,7 @@ namespace API.Controllers
         // PUT: api/TempHumidities/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTempHumidity(String id, TempHumidity tempHumidity)
+        public async Task<IActionResult> PutTempHumidity(string id, TempHumidity tempHumidity)
         {
             if (id != tempHumidity.Id)
             {
@@ -78,14 +78,28 @@ namespace API.Controllers
         public async Task<ActionResult<TempHumidity>> PostTempHumidity(TempHumidity tempHumidity)
         {
             _context.TempHumidityObjects.Add(tempHumidity);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (TempHumidityExists(tempHumidity.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             return CreatedAtAction("GetTempHumidity", new { id = tempHumidity.Id }, tempHumidity);
         }
 
         // DELETE: api/TempHumidities/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTempHumidity(int id)
+        public async Task<IActionResult> DeleteTempHumidity(string id)
         {
             var tempHumidity = await _context.TempHumidityObjects.FindAsync(id);
             if (tempHumidity == null)
@@ -99,7 +113,7 @@ namespace API.Controllers
             return NoContent();
         }
 
-        private bool TempHumidityExists(String id)
+        private bool TempHumidityExists(string id)
         {
             return _context.TempHumidityObjects.Any(e => e.Id == id);
         }
