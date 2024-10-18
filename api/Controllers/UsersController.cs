@@ -89,7 +89,7 @@ namespace API.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User newUser)
+        public async Task<ActionResult<User>> PostUser(SignUpDTO newUser)
         {
             if (await _context.Users.AnyAsync(item => item.Name == newUser.Name))
             {
@@ -110,14 +110,16 @@ namespace API.Controllers
                 return Conflict(new { message = "Password is not secure." });
             }
 
-            _context.Users.Add(newUser);
+            var user = MapSignUpDTOToUser(newUser);
+
+            _context.Users.Add(user);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                if (UserExists(newUser.Id))
+                if (UserExists(user.Id))
                 {
                     return Conflict();
                 }
@@ -127,7 +129,7 @@ namespace API.Controllers
                 }
             }
 
-            return Ok(new { newUser.Id, newUser.Name });
+            return Ok(new { user.Id, user.Name });
         }
 
         // POST: api/Users/login
