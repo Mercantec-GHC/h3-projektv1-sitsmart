@@ -24,7 +24,7 @@ namespace API.Controllers
         }
 
         // GET: api/Users
-       // [Authorize] // TODO: TILFØJ "(Roles = "Admin")" (Eksempel)
+        [Authorize] // TODO: TILFØJ "(Roles = "Admin")" (Eksempel)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {

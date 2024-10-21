@@ -37,12 +37,6 @@ namespace API
             var issuer = Configuration["JwtSettings:Issuer"] ?? Environment.GetEnvironmentVariable("Issuer");
             var audience = Configuration["JwtSettings:Audience"] ?? Environment.GetEnvironmentVariable("Audience");
             var key = Configuration["JwtSettings:Key"] ?? Environment.GetEnvironmentVariable("Key");
-            
-            Console.WriteLine("Connection: " + Connection);
-            Console.WriteLine("Issuer: " + issuer);
-            Console.WriteLine("Audience: " + audience);
-            Console.WriteLine("Key: " + key);
-
 
             string connectionString = Configuration.GetConnectionString("DefaultConnection")
                                         ?? Environment.GetEnvironmentVariable("DefaultConnection");

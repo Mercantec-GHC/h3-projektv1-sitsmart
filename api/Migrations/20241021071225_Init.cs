@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     /// <inheritdoc />
-    public partial class initDatabase : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -21,6 +21,20 @@ namespace API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SitSmartDevice", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserSitSmart",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<string>(type: "text", nullable: false),
+                    SitSmartId = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserSitSmart", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -105,27 +119,51 @@ namespace API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserSitSmart",
+                name: "SitSmartDeviceUserSitSmart",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SitSmartDeviceId = table.Column<string>(type: "text", nullable: true),
-                    UserId1 = table.Column<string>(type: "text", nullable: true)
+                    DevicesId = table.Column<string>(type: "text", nullable: false),
+                    UsersId = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserSitSmart", x => x.Id);
+                    table.PrimaryKey("PK_SitSmartDeviceUserSitSmart", x => new { x.DevicesId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_UserSitSmart_SitSmartDevice_SitSmartDeviceId",
-                        column: x => x.SitSmartDeviceId,
+                        name: "FK_SitSmartDeviceUserSitSmart_SitSmartDevice_DevicesId",
+                        column: x => x.DevicesId,
                         principalTable: "SitSmartDevice",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserSitSmart_Users_UserId1",
-                        column: x => x.UserId1,
+                        name: "FK_SitSmartDeviceUserSitSmart_UserSitSmart_UsersId",
+                        column: x => x.UsersId,
+                        principalTable: "UserSitSmart",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserUserSitSmart",
+                columns: table => new
+                {
+                    SitSmartsId = table.Column<int>(type: "integer", nullable: false),
+                    UsersId = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserUserSitSmart", x => new { x.SitSmartsId, x.UsersId });
+                    table.ForeignKey(
+                        name: "FK_UserUserSitSmart_UserSitSmart_SitSmartsId",
+                        column: x => x.SitSmartsId,
+                        principalTable: "UserSitSmart",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserUserSitSmart_Users_UsersId",
+                        column: x => x.UsersId,
                         principalTable: "Users",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
@@ -139,19 +177,19 @@ namespace API.Migrations
                 column: "sitSmartDeviceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SitSmartDeviceUserSitSmart_UsersId",
+                table: "SitSmartDeviceUserSitSmart",
+                column: "UsersId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TempHumidityObjects_sitSmartDeviceId",
                 table: "TempHumidityObjects",
                 column: "sitSmartDeviceId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserSitSmart_SitSmartDeviceId",
-                table: "UserSitSmart",
-                column: "SitSmartDeviceId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserSitSmart_UserId1",
-                table: "UserSitSmart",
-                column: "UserId1");
+                name: "IX_UserUserSitSmart_UsersId",
+                table: "UserUserSitSmart",
+                column: "UsersId");
         }
 
         /// <inheritdoc />
@@ -164,13 +202,19 @@ namespace API.Migrations
                 name: "MovementObjects");
 
             migrationBuilder.DropTable(
+                name: "SitSmartDeviceUserSitSmart");
+
+            migrationBuilder.DropTable(
                 name: "TempHumidityObjects");
 
             migrationBuilder.DropTable(
-                name: "UserSitSmart");
+                name: "UserUserSitSmart");
 
             migrationBuilder.DropTable(
                 name: "SitSmartDevice");
+
+            migrationBuilder.DropTable(
+                name: "UserSitSmart");
 
             migrationBuilder.DropTable(
                 name: "Users");

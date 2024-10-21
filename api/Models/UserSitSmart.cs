@@ -7,8 +7,8 @@ namespace API.Models
         [Key]
         public int Id { get; set; }
         public required String UserId { get; set; }
-        public required List<User> Users { get; set; }
+        public required User User { get; set; }
         public required String? SitSmartId { get; set; }
-        public required List<SitSmartDevice?> Devices { get; set; }
+        public required SitSmartDevice? Device { get; set; }
     }
 }

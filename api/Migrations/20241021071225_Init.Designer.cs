@@ -11,8 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20241018081158_initDatabase")]
-    partial class initDatabase
+    [Migration("20241021071225_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -153,19 +153,46 @@ namespace API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("SitSmartDeviceId")
+                    b.Property<string>("SitSmartId")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId1")
+                    b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SitSmartDeviceId");
-
-                    b.HasIndex("UserId1");
-
                     b.ToTable("UserSitSmart");
+                });
+
+            modelBuilder.Entity("SitSmartDeviceUserSitSmart", b =>
+                {
+                    b.Property<string>("DevicesId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DevicesId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("SitSmartDeviceUserSitSmart");
+                });
+
+            modelBuilder.Entity("UserUserSitSmart", b =>
+                {
+                    b.Property<int>("SitSmartsId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UsersId")
+                        .HasColumnType("text");
+
+                    b.HasKey("SitSmartsId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("UserUserSitSmart");
                 });
 
             modelBuilder.Entity("API.Models.DistanceObject", b =>
@@ -201,15 +228,34 @@ namespace API.Migrations
                     b.Navigation("sitSmartDevice");
                 });
 
-            modelBuilder.Entity("API.Models.UserSitSmart", b =>
+            modelBuilder.Entity("SitSmartDeviceUserSitSmart", b =>
                 {
                     b.HasOne("API.Models.SitSmartDevice", null)
-                        .WithMany("Users")
-                        .HasForeignKey("SitSmartDeviceId");
+                        .WithMany()
+                        .HasForeignKey("DevicesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Models.UserSitSmart", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("UserUserSitSmart", b =>
+                {
+                    b.HasOne("API.Models.UserSitSmart", null)
+                        .WithMany()
+                        .HasForeignKey("SitSmartsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("API.Models.User", null)
-                        .WithMany("SitSmarts")
-                        .HasForeignKey("UserId1");
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("API.Models.SitSmartDevice", b =>
@@ -219,13 +265,6 @@ namespace API.Migrations
                     b.Navigation("Movements");
 
                     b.Navigation("TempHumiditys");
-
-                    b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("API.Models.User", b =>
-                {
-                    b.Navigation("SitSmarts");
                 });
 #pragma warning restore 612, 618
         }
