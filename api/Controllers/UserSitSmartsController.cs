@@ -29,7 +29,7 @@ namespace API.Controllers
 
         // GET: api/UserSitSmarts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserSitSmart>> GetUserSitSmart(int id)
+        public async Task<ActionResult<UserSitSmart>> GetUserSitSmart(string id)
         {
             var userSitSmart = await _context.UserSitSmart.FindAsync(id);
 
@@ -44,9 +44,9 @@ namespace API.Controllers
         // PUT: api/UserSitSmarts/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUserSitSmart(int id, UserSitSmart userSitSmart)
+        public async Task<IActionResult> PutUserSitSmart(string id, UserSitSmart userSitSmart)
         {
-            if (id != userSitSmart.Id)
+            if (id != userSitSmart.id)
             {
                 return BadRequest();
             }
@@ -72,20 +72,34 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // POST: api/UserSitSmarts
+        // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<UserSitSmart>> PostUserSitSmart(UserSitSmart userSitSmart)
+        public async Task<ActionResult<SitSmartDevice>> PostUserSitSmart(createRelationDTO newRelation)
         {
-            _context.UserSitSmart.Add(userSitSmart);
-            await _context.SaveChangesAsync();
+            if (!(_context.Users.Any(e => e.Id == newRelation.userId)))
+            {
+                return NotFound();
+            }
 
-            return CreatedAtAction("GetUserSitSmart", new { id = userSitSmart.Id }, userSitSmart);
+            UserSitSmart relation = await MapNewRelation(newRelation);
+
+            _context.UserSitSmart.Add(relation);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                throw;
+            }
+
+            return Ok(new { relation.id, relation.userId, relation.deviceId });
         }
 
         // DELETE: api/UserSitSmarts/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUserSitSmart(int id)
+        public async Task<IActionResult> DeleteUserSitSmart(string id)
         {
             var userSitSmart = await _context.UserSitSmart.FindAsync(id);
             if (userSitSmart == null)
@@ -99,9 +113,20 @@ namespace API.Controllers
             return NoContent();
         }
 
-        private bool UserSitSmartExists(int id)
+        private bool UserSitSmartExists(string id)
         {
-            return _context.UserSitSmart.Any(e => e.Id == id);
+            return _context.UserSitSmart.Any(e => e.id == id);
+        }
+        private async Task<UserSitSmart> MapNewRelation(createRelationDTO newRelation)
+        {
+            return new UserSitSmart
+            {
+                id = Guid.NewGuid().ToString("N"),
+                userId = newRelation.userId,
+                user = await _context.Users.FindAsync(newRelation.userId),
+                deviceId = newRelation.deviceId != null ? newRelation.deviceId : null,
+                device = newRelation.deviceId != null ? await _context.SitSmartDevice.FindAsync(newRelation.deviceId) : null,
+            };
         }
     }
 }

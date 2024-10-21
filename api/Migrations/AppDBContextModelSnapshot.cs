@@ -144,27 +144,21 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.UserSitSmart", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DeviceId")
+                    b.Property<string>("id")
                         .HasColumnType("text");
 
-                    b.Property<string>("SitSmartId")
+                    b.Property<string>("deviceId")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("userId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
-                    b.HasIndex("DeviceId");
+                    b.HasIndex("deviceId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("userId");
 
                     b.ToTable("UserSitSmart");
                 });
@@ -204,19 +198,19 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.UserSitSmart", b =>
                 {
-                    b.HasOne("API.Models.SitSmartDevice", "Device")
+                    b.HasOne("API.Models.SitSmartDevice", "device")
                         .WithMany("Users")
-                        .HasForeignKey("DeviceId");
+                        .HasForeignKey("deviceId");
 
-                    b.HasOne("API.Models.User", "User")
+                    b.HasOne("API.Models.User", "user")
                         .WithMany("SitSmarts")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Device");
+                    b.Navigation("device");
 
-                    b.Navigation("User");
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("API.Models.SitSmartDevice", b =>

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace API.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20241021071225_Init")]
+    [Migration("20241021213245_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -147,52 +147,23 @@ namespace API.Migrations
 
             modelBuilder.Entity("API.Models.UserSitSmart", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("SitSmartId")
+                    b.Property<string>("id")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
+                    b.Property<string>("deviceId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("userId")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
+
+                    b.HasIndex("deviceId");
+
+                    b.HasIndex("userId");
 
                     b.ToTable("UserSitSmart");
-                });
-
-            modelBuilder.Entity("SitSmartDeviceUserSitSmart", b =>
-                {
-                    b.Property<string>("DevicesId")
-                        .HasColumnType("text");
-
-                    b.Property<int>("UsersId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("DevicesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("SitSmartDeviceUserSitSmart");
-                });
-
-            modelBuilder.Entity("UserUserSitSmart", b =>
-                {
-                    b.Property<int>("SitSmartsId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("SitSmartsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("UserUserSitSmart");
                 });
 
             modelBuilder.Entity("API.Models.DistanceObject", b =>
@@ -228,34 +199,21 @@ namespace API.Migrations
                     b.Navigation("sitSmartDevice");
                 });
 
-            modelBuilder.Entity("SitSmartDeviceUserSitSmart", b =>
+            modelBuilder.Entity("API.Models.UserSitSmart", b =>
                 {
-                    b.HasOne("API.Models.SitSmartDevice", null)
-                        .WithMany()
-                        .HasForeignKey("DevicesId")
+                    b.HasOne("API.Models.SitSmartDevice", "device")
+                        .WithMany("Users")
+                        .HasForeignKey("deviceId");
+
+                    b.HasOne("API.Models.User", "user")
+                        .WithMany("SitSmarts")
+                        .HasForeignKey("userId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.UserSitSmart", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+                    b.Navigation("device");
 
-            modelBuilder.Entity("UserUserSitSmart", b =>
-                {
-                    b.HasOne("API.Models.UserSitSmart", null)
-                        .WithMany()
-                        .HasForeignKey("SitSmartsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("API.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("API.Models.SitSmartDevice", b =>
@@ -265,6 +223,13 @@ namespace API.Migrations
                     b.Navigation("Movements");
 
                     b.Navigation("TempHumiditys");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("API.Models.User", b =>
+                {
+                    b.Navigation("SitSmarts");
                 });
 #pragma warning restore 612, 618
         }
