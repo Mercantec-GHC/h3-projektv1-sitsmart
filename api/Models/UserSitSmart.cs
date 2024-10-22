@@ -6,16 +6,16 @@ namespace API.Models
     {
         [Key]
         public String id { get; set; }
-        public required String userId { get; set; }
-        public required User? user { get; set; }
-        public required String? deviceId { get; set; }
-        public required SitSmartDevice? device { get; set; }
+        public String userId { get; set; }
+        public User? user { get; set; }
+        public String? deviceId { get; set; }
+        public SitSmartDevice? device { get; set; }
     }
 
     public class createRelationDTO
     {
-        public required String Id { get; set; }
-        public required String userId { get; set; }
-        public required String? deviceId { get; set; }
+        public String Id { get; set; }
+        public String userId { get; set; }
+        public String? deviceId { get; set; }
     }
 }

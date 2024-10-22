@@ -10,7 +10,7 @@
         public required String RealPassword { get; set; }
         public required String Salt { get; set; }
         public required DateTime LastLogin { get; set; }
-        public required List<UserSitSmart?> SitSmarts { get; set; }
+        public List<UserSitSmart?> SitSmarts { get; set; }
     }
 
     public class UserDTO
