@@ -26,18 +26,21 @@ li a:hover {
 #userList {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
-  justify-content: center; /* Centers the cards horizontally */
+  gap: 15px; /* Afstand mellem kortene */
+  justify-content: center; /* Centrer kortene horisontalt */
 }
 
 .user-card {
   border: 1px solid #ccc;
   padding: 15px;
-  width: 200px; /* Set a fixed width for each card */
+  width: 200px; /* Fast bredde til hvert kort */
   border-radius: 8px;
   background-color: #f9f9f9;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-align: center; /* Center text inside the card */
+  text-align: center; /* Centrer tekst inden i kortet */
+  display: flex;
+  flex-direction: column; /* Sørg for, at indholdet placeres lodret */
+  align-items: center; /* Centrer indholdet horisontalt */
 }
 
 .user-card h3 {
@@ -49,3 +52,16 @@ li a:hover {
   margin: 5px 0;
 }
 
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
+}
