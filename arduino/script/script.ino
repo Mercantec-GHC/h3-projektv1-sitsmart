@@ -20,8 +20,8 @@ int lastX, lastY, lastZ, lastLength;
 float lastHumidity, lastTemp;
 
 // WIFI Connection variables
-char ssid[] = "MAGS-OLC";
-char pass[] = "Merc1234!";
+char ssid[] = "";
+char pass[] = "";
 int status = WL_IDLE_STATUS;
 
 // API Variables
@@ -78,7 +78,7 @@ void loop() {
     Serial.print("Temp: ");
     Serial.println(temp);
 
-    //sendData(temp, humidity)
+    sendData(temp*100, humidity*100);
   }
 
   //////////////////////////////
@@ -136,21 +136,22 @@ void drawLogo(uint16_t color) {
   carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
 
-void SensorData::sendData(int temp, int humid) {
-  String postData = "{\"temp\":\"8d414a937e634a16945e5d17adc5e04a\",";
-  postData += "\"temperature\":" + String(temp) + ",";
+void sendData(int temp, int humid) {
+  String postData = "{\"sitSmartDeviceId\":\"8d414a937e634a16945e5d17adc5e04a\",";
+  postData += "\"temp\":" + String(temp) + ",";
   postData += "\"humidity\":" + String(humid) + "}";
+  Serial.println(postData);
 
-  httpClient->beginRequest();
-  httpClient->post("/api/DeviceDatas");
-  httpClient->sendHeader("Content-Type", "application/json");
-  httpClient->sendHeader("accept", "text/plain");
-  httpClient->beginBody();
-  httpClient->print(postData);
-  httpClient->endRequest();
+  httpClient.beginRequest();
+  httpClient.post("/api/DeviceDatas");
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("accept", "text/plain");
+  httpClient.beginBody();
+  httpClient.print(postData);
+  httpClient.endRequest();
 
-  int statusCode = httpClient->responseStatusCode();
-  String response = httpClient->responseBody();
+  int statusCode = httpClient.responseStatusCode();
+  String response = httpClient.responseBody();
 
   Serial.print("Status code: ");
   Serial.println(statusCode);
