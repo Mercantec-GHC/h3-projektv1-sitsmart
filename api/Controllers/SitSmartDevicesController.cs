@@ -75,8 +75,10 @@ namespace API.Controllers
         // POST: api/SitSmartDevices
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<SitSmartDevice>> PostSitSmartDevice(SitSmartDevice sitSmartDevice)
+        public async Task<ActionResult<SitSmartDevice>> PostSitSmartDevice(sitSmartDeviceDTO newSitSmart)
         {
+            var sitSmartDevice = MapDTOToSitSmartDevice(newSitSmart);
+
             _context.sitSmartDevices.Add(sitSmartDevice);
             try
             {
@@ -116,6 +118,13 @@ namespace API.Controllers
         private bool SitSmartDeviceExists(string id)
         {
             return _context.sitSmartDevices.Any(e => e.Id == id);
+        }
+        private SitSmartDevice MapDTOToSitSmartDevice(sitSmartDeviceDTO dto)
+        {
+            return new SitSmartDevice
+            {
+                Id = Guid.NewGuid().ToString("N"),
+            };
         }
     }
 }

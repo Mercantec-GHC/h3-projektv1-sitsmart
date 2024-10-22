@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace API.Controllers
 {
@@ -75,8 +76,10 @@ namespace API.Controllers
         // POST: api/TempHumidities
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TempHumidity>> PostTempHumidity(TempHumidity tempHumidity)
+        public async Task<ActionResult<TempHumidity>> PostTempHumidity(PostTempHumidDTO newTempHumidity)
         {
+            var tempHumidity = MapDTOToTempHumidity(newTempHumidity);
+
             _context.TempHumidityObjects.Add(tempHumidity);
             try
             {
@@ -117,5 +120,16 @@ namespace API.Controllers
         {
             return _context.TempHumidityObjects.Any(e => e.Id == id);
         }
+        private TempHumidity MapDTOToTempHumidity(PostTempHumidDTO dto)
+        {
+            return new TempHumidity
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Temp = dto.Temp, 
+                Humidity = dto.Humidity,
+                CreatedAt = DateTime.UtcNow.AddHours(2),
+                sitSmartDeviceId = dto.sitSmartDeviceId
+            };
+        } 
     }
 }

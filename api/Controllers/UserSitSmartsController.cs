@@ -75,8 +75,10 @@ namespace API.Controllers
         // POST: api/UserSitSmarts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<UserSitSmart>> PostUserSitSmart(UserSitSmart userSitSmart)
+        public async Task<ActionResult<UserSitSmart>> PostUserSitSmart(createRelationDTO userSitSmartDTO)
         {
+            var userSitSmart = await MapDTOToRelation(userSitSmartDTO);
+
             _context.UserSitSmart.Add(userSitSmart);
             try
             {
@@ -116,6 +118,15 @@ namespace API.Controllers
         private bool UserSitSmartExists(string id)
         {
             return _context.UserSitSmart.Any(e => e.id == id);
+        }
+
+        private async Task<UserSitSmart> MapDTOToRelation(createRelationDTO dto)
+        {
+            return new UserSitSmart
+            {
+                id = Guid.NewGuid().ToString("N"),
+                userId = dto.userId
+            };
         }
     }
 }

@@ -14,7 +14,6 @@ namespace API.Models
 
     public class createRelationDTO
     {
-        public String Id { get; set; }
         public String userId { get; set; }
         public String? deviceId { get; set; }
     }
