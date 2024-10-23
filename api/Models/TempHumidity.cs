@@ -2,9 +2,15 @@
 {
     public class TempHumidity : Common
     {
-        public required int Temp { get; set; }
-        public required int Humidity { get; set; }
-        public required String sitSmartDeviceId { get; set; }
-        public required SitSmartDevice sitSmartDevice { get; set; }
+        public int Temp { get; set; }
+        public int Humidity { get; set; }
+        public String sitSmartDeviceId { get; set; }
+        public SitSmartDevice sitSmartDevice { get; set; }
+    }
+    public class PostTempHumidDTO
+    {
+        public int Temp { get; set; }
+        public int Humidity { get; set; }
+        public String sitSmartDeviceId { get; set; }
     }
 }

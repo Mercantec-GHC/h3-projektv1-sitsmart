@@ -5,7 +5,7 @@ namespace API.Models
     public abstract class Common
     {
         [Key]
-        public required String Id { get; set; }
-        public required DateTime CreatedAt { get; set; } = DateTime.Now;
+        public String Id { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 }

@@ -72,29 +72,31 @@ namespace API.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
+        // POST: api/UserSitSmarts
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<SitSmartDevice>> PostUserSitSmart(createRelationDTO newRelation)
+        public async Task<ActionResult<UserSitSmart>> PostUserSitSmart(createRelationDTO userSitSmartDTO)
         {
-            if (!(_context.Users.Any(e => e.Id == newRelation.userId)))
-            {
-                return NotFound();
-            }
+            var userSitSmart = await MapDTOToRelation(userSitSmartDTO);
 
-            UserSitSmart relation = await MapNewRelation(newRelation);
-
-            _context.UserSitSmart.Add(relation);
+            _context.UserSitSmart.Add(userSitSmart);
             try
             {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateException)
             {
-                throw;
+                if (UserSitSmartExists(userSitSmart.id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
             }
 
-            return Ok(new { relation.id, relation.userId, relation.deviceId });
+            return CreatedAtAction("GetUserSitSmart", new { id = userSitSmart.id }, userSitSmart);
         }
 
         // DELETE: api/UserSitSmarts/5
@@ -117,15 +119,13 @@ namespace API.Controllers
         {
             return _context.UserSitSmart.Any(e => e.id == id);
         }
-        private async Task<UserSitSmart> MapNewRelation(createRelationDTO newRelation)
+
+        private async Task<UserSitSmart> MapDTOToRelation(createRelationDTO dto)
         {
             return new UserSitSmart
             {
                 id = Guid.NewGuid().ToString("N"),
-                userId = newRelation.userId,
-                user = await _context.Users.FindAsync(newRelation.userId),
-                deviceId = newRelation.deviceId != null ? newRelation.deviceId : null,
-                device = newRelation.deviceId != null ? await _context.SitSmartDevice.FindAsync(newRelation.deviceId) : null,
+                userId = dto.userId
             };
         }
     }

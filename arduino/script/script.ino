@@ -20,8 +20,8 @@ int lastX, lastY, lastZ, lastLength;
 float lastHumidity, lastTemp;
 
 // WIFI Connection variables
-char ssid[] = "MAGS-OLC";
-char pass[] = "Merc1234!";
+char ssid[] = "";
+char pass[] = "";
 int status = WL_IDLE_STATUS;
 
 // API Variables
@@ -70,17 +70,15 @@ void loop() {
   // Remove decimals?
 
   // Print value if it has changed
-  if (humidity != lastHumidity) {
+  if (humidity != lastHumidity || temp != lastTemp) {
     lastHumidity = humidity;
     Serial.print("Humidity: ");
     Serial.println(humidity);
-  }
-
-  // Print value if it has changed
-  if (temp != lastTemp) {
     lastTemp = temp;
     Serial.print("Temp: ");
     Serial.println(temp);
+
+    sendData(temp*100, humidity*100);
   }
 
   //////////////////////////////
@@ -137,32 +135,29 @@ void drawLogo(uint16_t color) {
   //carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
   carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
-/*
-void SensorData::sendData() {
-  String postData = "{\"deviceId\":\"10aed77d607b4428b05135cd9629d70f\",";
-  postData += "\"temperature\":" + String(temperature) + ",";
-  postData += "\"humidity\":" + String(humidity) + ",";
-  postData += "\"gasResistor\":" + String(gasResistor) + ",";
-  postData += "\"volatileOrganicCompounds\":" + String(volatileOrganicCompounds) + ",";
-  postData += "\"cO2\":" + String(co2) + "}";
 
-  httpClient->beginRequest();
-  httpClient->post("/api/DeviceDatas");
-  httpClient->sendHeader("Content-Type", "application/json");
-  httpClient->sendHeader("Content-Length", postData.length());
-  httpClient->sendHeader("accept", "text/plain");
-  httpClient->beginBody();
-  httpClient->print(postData);
-  httpClient->endRequest();
+void sendData(int temp, int humid) {
+  String postData = "{\"sitSmartDeviceId\":\"8d414a937e634a16945e5d17adc5e04a\",";
+  postData += "\"temp\":" + String(temp) + ",";
+  postData += "\"humidity\":" + String(humid) + "}";
+  Serial.println(postData);
 
-  int statusCode = httpClient->responseStatusCode();
-  String response = httpClient->responseBody();
+  httpClient.beginRequest();
+  httpClient.post("/api/DeviceDatas");
+  httpClient.sendHeader("Content-Type", "application/json");
+  httpClient.sendHeader("accept", "text/plain");
+  httpClient.beginBody();
+  httpClient.print(postData);
+  httpClient.endRequest();
+
+  int statusCode = httpClient.responseStatusCode();
+  String response = httpClient.responseBody();
 
   Serial.print("Status code: ");
   Serial.println(statusCode);
   Serial.print("Response: ");
   Serial.println(response);
 }
-*/
+
 
 
