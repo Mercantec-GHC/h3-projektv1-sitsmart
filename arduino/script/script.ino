@@ -20,13 +20,13 @@ int lastX, lastY, lastZ, lastLength;
 float lastHumidity, lastTemp;
 
 // WIFI Connection variables
-char ssid[] = "MAGS_OLC";
+char ssid[] = "MAGS-OLC";
 char pass[] = "Merc1234!";
 int status = WL_IDLE_STATUS;
 
 // API Variables
-String apiUrl = "https://ergo.mercantec.tech/";
-HttpClient httpClient = HttpClient(wifi, apiUrl);
+String apiUrl = "ergo.mercantec.tech";
+HttpClient* httpClient;
 
 void setup() {
   Serial.begin(9600);
@@ -36,8 +36,6 @@ void setup() {
   // Draw logo on display
   carrier.display.fillScreen(0xFFFF);
   drawLogo(0x021D30);
-
-
 
   // Check for WIFI
   if (WiFi.status() == WL_NO_MODULE) {
@@ -59,6 +57,8 @@ void setup() {
 
   Serial.print("You're connected to ");
   Serial.println(ssid);
+
+  httpClient = new HttpClient(wifi, apiUrl);
 }
 
 void loop() {
@@ -142,16 +142,16 @@ void sendData(int temp, int humid) {
   postData += "\"humidity\":" + String(humid) + "}";
   Serial.println(postData);
 
-  httpClient.beginRequest();
-  httpClient.post("/api/DeviceDatas");
-  httpClient.sendHeader("Content-Type", "application/json");
-  httpClient.sendHeader("accept", "text/plain");
-  httpClient.beginBody();
-  httpClient.print(postData);
-  httpClient.endRequest();
+  httpClient->beginRequest();
+  httpClient->post("/api/TempHumidities");
+  httpClient->sendHeader("Content-Type", "application/json");
+  httpClient->sendHeader("accept", "text/plain");
+  httpClient->beginBody();
+  httpClient->print(postData);
+  httpClient->endRequest();
 
-  int statusCode = httpClient.responseStatusCode();
-  String response = httpClient.responseBody();
+  int statusCode = httpClient->responseStatusCode();
+  String response = httpClient->responseBody();
 
   Serial.print("Status code: ");
   Serial.println(statusCode);
