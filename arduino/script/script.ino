@@ -20,8 +20,8 @@ int lastX, lastY, lastZ, lastLength;
 float lastHumidity, lastTemp;
 
 // WIFI Connection variables
-char ssid[] = "";
-char pass[] = "";
+char ssid[] = "MAGS_OLC";
+char pass[] = "Merc1234!";
 int status = WL_IDLE_STATUS;
 
 // API Variables
