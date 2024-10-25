@@ -1,6 +1,4 @@
-
-
-#ifdef SITSMART_H
+#ifndef SITSMART_H
 #define SITSMART_H
 
 #include <Arduino_MKRIoTCarrier.h>
@@ -28,7 +26,9 @@ class SitSmart {
 
   public:
     SitSmart(const char* ssid, const char* password);
-    void drawLogo();
+    void begin();
+    void drawLogo(uint16_t color);
+    // Tilføj andre offentlige medlemsfunktioner her
 };
 
-#endif SITSMART_H
+#endif // SITSMART_H

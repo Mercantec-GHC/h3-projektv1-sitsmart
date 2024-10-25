@@ -10,7 +10,7 @@ void SitSmart::begin() {
   connectToWiFi();
 }
 
-void connectToWifi() {
+void SitSmart::connectToWiFi() {
     // Check for WIFI
   if (WiFi.status() == WL_NO_MODULE) {
     Serial.println("Communication with WiFi module failed!");
