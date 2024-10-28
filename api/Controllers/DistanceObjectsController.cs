@@ -75,8 +75,10 @@ namespace API.Controllers
         // POST: api/DistanceObjects
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<DistanceObject>> PostDistanceObject(DistanceObject distanceObject)
+        public async Task<ActionResult<DistanceObject>> PostDistanceObject(postDistanceDTO distanceDTO)
         {
+            DistanceObject distanceObject = MapDTOToDistanceObject(distanceDTO);
+
             _context.DistanceObjects.Add(distanceObject);
             try
             {
@@ -116,6 +118,17 @@ namespace API.Controllers
         private bool DistanceObjectExists(string id)
         {
             return _context.DistanceObjects.Any(e => e.Id == id);
+        }
+        
+        private DistanceObject MapDTOToDistanceObject(postDistanceDTO dto)
+        {
+            return new DistanceObject
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                CreatedAt = DateTime.UtcNow.AddHours(2),
+                Distance = dto.Distance,
+                sitSmartDeviceId = dto.sitSmartDeviceId
+            };
         }
     }
 }

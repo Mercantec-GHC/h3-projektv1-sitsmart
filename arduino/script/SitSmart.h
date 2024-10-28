@@ -10,6 +10,7 @@
 #include <SD.h>
 #include <Arduino.h>
 #include <bsec.h>
+#include "Images.h"
 
 class SitSmart {
   private:
@@ -22,13 +23,28 @@ class SitSmart {
     WiFiSSLClient wifi;
     String apiUrl = "ergo.mercantec.tech";
     int status = WL_IDLE_STATUS; 
-    Ultrasonic ultrasonic(A6);
+    String deviceId = "8d414a937e634a16945e5d17adc5e04a";
+    float x, y, z;
+    int lastX, lastY, lastZ, lastLength;
+    int lastMillis;
+    float lastHumidity, lastTemp;
+        
+    // API Variables
+    String postData[10];
 
   public:
     SitSmart(const char* ssid, const char* password);
     void begin();
+    void connectToWiFi();
     void drawLogo(uint16_t color);
-    // Tilføj andre offentlige medlemsfunktioner her
+    void handleTempHumid();
+    void handleDistance();
+    void handleMovement();
+    void readData();
+    void sendData(String body);
+    void addRequestToBatch(String request);
+    int getIndexOfInStringArray(String arr[10], String wantedValue);
+    void sendAllRequests();
 };
 
 #endif // SITSMART_H
