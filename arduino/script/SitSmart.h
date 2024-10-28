@@ -11,6 +11,8 @@
 #include <Arduino.h>
 #include <bsec.h>
 #include "Images.h"
+#include <Bridge.h>
+#include <BridgeHttpClient.h>
 
 class SitSmart {
   private:
@@ -20,6 +22,7 @@ class SitSmart {
     const char* ssid;
     const char* password;
     HttpClient* httpClient;
+    BridgeHttpClient client;
     WiFiSSLClient wifi;
     String apiUrl = "ergo.mercantec.tech";
     int status = WL_IDLE_STATUS; 
@@ -45,6 +48,7 @@ class SitSmart {
     void addRequestToBatch(String request);
     int getIndexOfInStringArray(String arr[10], String wantedValue);
     void sendAllRequests();
+    void sendAsyncRequest(String body);
 };
 
 #endif // SITSMART_H

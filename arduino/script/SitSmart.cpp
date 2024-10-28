@@ -58,8 +58,14 @@ void SitSmart::handleTempHumid() {
     Serial.println(temp);
 
 
-    String postBody = "{ \"temp\": " + String(temp*100) + ", \"humidity\": " + String(humidity*100) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }";
-    addRequestToBatch(postBody);
+    int intTemp = temp*100;
+    int intHumid = humidity*100;
+
+
+    String postBody = "{ \"temp\": " + String(intTemp) + ", \"humidity\": " + String(intHumid) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }";
+    sendAsyncRequest(postBody);
+    Serial.println("sent request");
+    //addRequestToBatch(postBody);
   }
 }
 
@@ -82,6 +88,14 @@ void SitSmart::handleDistance() {
     lastMillis = time;
     lastLength = distanceInCm;
   }
+}
+
+void SitSmart::sendAsyncRequest(String body) {
+  client.addHeader("Content-Type: application/json");
+  client.addHeader("Content-Length: " + sizeof(body));
+  client.addHeader("Accept: text/plain");
+  
+  client.postAsync("/api/TempHumidities", body);
 }
 
 void SitSmart::handleMovement() {
@@ -178,7 +192,7 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 void SitSmart::sendAllRequests() {
   for (int i=0; i < 10; i++) {
     Serial.println(postData[i]);
-    sendData(postData[i]);
+    //sendData(postData[i]);
     postData[i] = "";
   }
   Serial.println("Sent all requests");
