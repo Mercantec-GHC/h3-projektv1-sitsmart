@@ -8,6 +8,7 @@ void SitSmart::begin() {
   carrier.begin();
   Serial.begin(9600); 
   connectToWiFi();
+  drawLogo(0x021D30);
 }
 
 void SitSmart::connectToWiFi() {
@@ -31,15 +32,15 @@ void SitSmart::connectToWiFi() {
 
   httpClient = new HttpClient(wifi, apiUrl, 443);
 }
-/*
+
 // Draw logo
 void SitSmart::drawLogo(uint16_t color) {
-  carrier.display.fillScreen(0xFFFF);
+  carrier.display.fillScreen(0xFFFF);/*
   carrier.display.drawBitmap(44, 60, ErgoLogo, 152, 72, color);
   //carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
-  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
+  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);*/
 }
-*/
+
 void SitSmart::handleTempHumid() {
   //////////////////////////////
   /// TEMPERATURE & HUMIDITY ///
@@ -63,9 +64,7 @@ void SitSmart::handleTempHumid() {
 
 
     String postBody = "{ \"temp\": " + String(intTemp) + ", \"humidity\": " + String(intHumid) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }";
-    sendAsyncRequest(postBody);
-    Serial.println("sent request");
-    //addRequestToBatch(postBody);
+    addRequestToBatch(postBody);
   }
 }
 
@@ -88,14 +87,6 @@ void SitSmart::handleDistance() {
     lastMillis = time;
     lastLength = distanceInCm;
   }
-}
-
-void SitSmart::sendAsyncRequest(String body) {
-  client.addHeader("Content-Type: application/json");
-  client.addHeader("Content-Length: " + sizeof(body));
-  client.addHeader("Accept: text/plain");
-  
-  client.postAsync("/api/TempHumidities", body);
 }
 
 void SitSmart::handleMovement() {
@@ -143,7 +134,6 @@ void SitSmart::readData() {
 }
 
 void SitSmart::sendData(String body) {
-  
   httpClient->beginRequest();
   httpClient->post("/api/TempHumidities");
   httpClient->sendHeader("Content-Type", "application/json");
@@ -173,8 +163,6 @@ void SitSmart::addRequestToBatch(String request) {
     Serial.println("Saved requests full! Sending all requests");
     sendAllRequests();
   }
-
-  Serial.println("Added request: " + postData[firstEmptySpace] + " at " + String(firstEmptySpace));
 }
 
 int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
@@ -192,7 +180,7 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 void SitSmart::sendAllRequests() {
   for (int i=0; i < 10; i++) {
     Serial.println(postData[i]);
-    //sendData(postData[i]);
+    sendData(postData[i]);
     postData[i] = "";
   }
   Serial.println("Sent all requests");
