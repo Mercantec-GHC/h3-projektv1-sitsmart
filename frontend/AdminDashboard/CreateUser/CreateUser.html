@@ -1,9 +1,13 @@
 <html>
 <head>
-    <link rel="stylesheet" href="/CreateUser/CreateUserStyles.css">
+    <link rel="stylesheet" href="/CreateUser/Styles.css">
+    <link rel="stylesheet" href="../Styles.css">
     
 </head>
 <body>
+    <ul>
+        <li><a href="../index.html">Back</a></li>
+      </ul> 
 <div id="registerContainer">
     <form id="registerForm">
         <h2>Opret Bruger</h2>
@@ -19,12 +23,12 @@
             <label for="newPassword">Password:</label>
             <input type="password" id="newPassword" name="password" required>
         </div>
-        <button type="submitCreate">Opret Bruger</button>
+        <button type="submit">Opret Bruger</button>
     </form>
     <p id="registerError" style="color: red; display: none;">Kunne ikke oprette bruger. Prøv igen.</p>
     <p id="registerSuccess" style="color: green; display: none;">Bruger oprettet succesfuldt!</p>
     
 </div>
-<script src="/CreateUser/CreateUserScript.js"></script>
+<script src="/CreateUser/Script.js"></script>
 </body>
 </html>

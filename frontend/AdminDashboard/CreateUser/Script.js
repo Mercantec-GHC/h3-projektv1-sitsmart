@@ -1,5 +1,5 @@
-document.addEventListener("DOMContentLoaded", function() {
-document.getElementById("registerForm").addEventListener("submitCreate", function(event) {
+
+document.getElementById("registerForm").addEventListener("submit", function(event) {
     event.preventDefault(); // Forhindrer formularen i at sende normalt
 
     const name = document.getElementById("newName").value;
@@ -51,4 +51,4 @@ document.getElementById("registerForm").addEventListener("submitCreate", functio
             document.getElementById("registerSuccess").style.display = "none";
         });
     });
-});    
+    
