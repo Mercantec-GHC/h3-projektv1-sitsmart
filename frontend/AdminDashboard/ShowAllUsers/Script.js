@@ -21,7 +21,7 @@ function fetchUserData(token) {
         redirect: "follow"
     };
 
-    fetch("https://ergo.mercantec.tech/api/Users", requestOptions)
+    fetch("https://sit-api.mercantec.tech/api/Users", requestOptions)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -65,7 +65,7 @@ function deleteUser(userId, buttonElement) {
         redirect: "follow"
     };
 
-    fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, requestOptions)
+    fetch(`https://sit-api.mercantec.tech/api/Users/${userId}`, requestOptions)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -117,7 +117,7 @@ function saveUserEdits(userId, buttonElement) {
         redirect: "follow"
     };
 
-    fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, requestOptions)
+    fetch(`https://sit-api.mercantec.tech/api/Users/${userId}`, requestOptions)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -183,7 +183,7 @@ function saveUserEdits(userId, buttonElement) {
     console.log("Updated Data:", updatedData);
     console.log("Request Options:", requestOptions);
 
-    fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, requestOptions)
+    fetch(`https://sit-api.mercantec.tech/api/Users/${userId}`, requestOptions)
         .then(response => {
             if (!response.ok) {
                 return response.text().then(text => {

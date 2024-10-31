@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 redirect: "follow"
             };
     
-            fetch(`https://ergo.mercantec.tech/api/Users`, requestOptions)
+            fetch(`https://sit-api.mercantec.tech/api/Users`, requestOptions)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
