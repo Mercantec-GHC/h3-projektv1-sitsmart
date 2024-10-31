@@ -21,7 +21,7 @@ class SitSmart {
     const char* password;
     HttpClient* httpClient;
     WiFiSSLClient wifi;
-    String apiUrl = "ergo.mercantec.tech";
+    String apiUrl = "sit-api.mercantec.tech";
     int status = WL_IDLE_STATUS; 
     String deviceId = "8d414a937e634a16945e5d17adc5e04a";
     float x, y, z;

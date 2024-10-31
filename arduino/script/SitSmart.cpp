@@ -4,7 +4,7 @@ SitSmart::SitSmart(const char* ssid, const char* password)
   : ssid(ssid), password(password) {}
 
 void SitSmart::begin() {
-  carrier.noCase();
+  carrier.withCase();
   carrier.begin();
   Serial.begin(9600); 
   connectToWiFi();
