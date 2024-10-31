@@ -4,6 +4,7 @@ SitSmart sitSmart("TBF", "TBF");
 
 
 void setup() {
+  Serial.println("bababab");
   sitSmart.begin();
 
 }
