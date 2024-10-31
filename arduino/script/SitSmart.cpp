@@ -6,9 +6,12 @@ SitSmart::SitSmart(const char* ssid, const char* password)
 void SitSmart::begin() {
   carrier.withCase();
   carrier.begin();
-  Serial.begin(9600); 
-  //connectToWiFi();
   drawLogo(0x021D30);
+  Serial.begin(9600); 
+  
+  sdInitialized = true;
+  
+  connectToWiFi();
 
   writeToSD("abab", true);
   readFromSD();
@@ -32,10 +35,10 @@ void SitSmart::connectToWiFi() {
 
 // Draw logo
 void SitSmart::drawLogo(uint16_t color) {
-  carrier.display.fillScreen(0xFFFF);/*
+  carrier.display.fillScreen(0xFFFF);
   carrier.display.drawBitmap(44, 60, ErgoLogo, 152, 72, color);
   //carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
-  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);*/
+  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
 
 void SitSmart::handleTempHumid() {
@@ -123,7 +126,7 @@ void SitSmart::handleMovement() {
 void SitSmart::readData() {
   handleTempHumid();
 
-  handleDistance();
+  //handleDistance(); // Udkommenterer kald til handleDistance
 
   handleMovement();
 
@@ -187,33 +190,58 @@ void SitSmart::sendAllRequests() {
 }
 
 void SitSmart::writeToSD(String input, bool clearSDFile) {
+  Serial.println("Forsøger at skrive til SD-kort...");
+  Serial.print("Filnavn: ");
+  Serial.println(fileName);
+  
   if (clearSDFile) {
-    SD.remove(fileName);
+    if (SD.exists(fileName)) {
+      Serial.println("Fil findes - forsøger at slette");
+      if (SD.remove(fileName)) {
+        Serial.println("Fil slettet succesfuldt");
+      } else {
+        Serial.println("Kunne ikke slette fil");
+      }
+    }
   }
   
   File myFile = SD.open(fileName, FILE_WRITE);
-
   if (myFile) {
-    // print to the file
+    Serial.println("Fil åbnet succesfuldt");
     myFile.println(input);
     myFile.close();
+    Serial.println("Data skrevet til SD-kort");
   } else {
-    Serial.println("error1");
+    Serial.println("Kunne ikke åbne fil til skrivning");
+    Serial.print("SD-kort status: ");
+    if (!SD.begin(SD_CS)) {
+      Serial.println("SD-kort ikke tilgængeligt");
+    } else {
+      Serial.println("SD-kort er tilgængeligt");
+    }
   }
 }
 
 void SitSmart::readFromSD() {
-
+  Serial.println("Forsøger at læse fra SD-kort...");
+  Serial.print("Filnavn: ");
+  Serial.println(fileName);
+  
   File myFile = SD.open(fileName);
   if (myFile) {
-
-    // read from the file
+    Serial.println("Fil åbnet succesfuldt");
+    String content = "";
     while (myFile.available()) {
-      // TODO: save in string instead of printing
-      Serial.write(myFile.read());
+      content += (char)myFile.read();
     }
+    Serial.println("Læst fra SD-kort: " + content);
     myFile.close();
   } else {
-    Serial.println("error2");
+    Serial.println("Kunne ikke åbne fil til læsning");
+    if (SD.exists(fileName)) {
+      Serial.println("Filen findes på SD-kortet");
+    } else {
+      Serial.println("Filen findes ikke på SD-kortet");
+    }
   }
 }

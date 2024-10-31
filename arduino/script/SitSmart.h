@@ -7,7 +7,6 @@
 #include <Ultrasonic.h>
 #include <ArduinoHttpClient.h>
 #include <ArduinoJson.h>
-#include <SD.h>
 #include <Arduino.h>
 #include <bsec.h>
 #include "Images.h"
@@ -28,10 +27,11 @@ class SitSmart {
     float lastHumidity, lastTemp;
     String apiUrl = "sitsmart-nk0s.onrender.com";
     String deviceId = "8d414a937e634a16945e5d17adc5e04a";
-    String fileName = "savedValues.txt";
+    const char* fileName = "savedValues.txt";
         
     // API Variables
     String postData[10];
+    bool sdInitialized = false;
 
   public:
     SitSmart(const char* ssid, const char* password);
