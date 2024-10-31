@@ -7,7 +7,7 @@ void SitSmart::begin() {
   carrier.withCase();
   carrier.begin();
   Serial.begin(9600); 
-  connectToWiFi();
+  //connectToWiFi();
   drawLogo(0x021D30);
 
   writeToSD("abab", true);

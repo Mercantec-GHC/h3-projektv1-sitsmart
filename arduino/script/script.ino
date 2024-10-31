@@ -1,7 +1,7 @@
 #include "SitSmart.h"
 #include "Images.h"
 
-SitSmart sitSmart("GalaxyS22", "password!");
+SitSmart sitSmart(" ", " ");
 
 File myFile;
 String fileName = "test.txt";
