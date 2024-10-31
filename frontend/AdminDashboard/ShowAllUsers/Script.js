@@ -1,67 +1,47 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const token = localStorage.getItem("authToken");
+// Hent token fra localStorage
+const token = localStorage.getItem("authToken");
 
-    // Funktion til at hente og vise brugerne på siden
-    function fetchUserData() {
-        const myHeaders = new Headers();
-        myHeaders.append("Accept", "application/json");
-        myHeaders.append("Authorization", `Bearer ${token}`);
+// Funktion til at hente og vise brugerdata
+function fetchUserData() {
+    const myHeaders = new Headers();
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append("Authorization", `Bearer ${token}`);
 
-        const requestOptions = {
-            method: "GET",
-            headers: myHeaders,
-            redirect: "follow"
-        };
+    fetch("https://ergo.mercantec.tech/api/Users", { method: "GET", headers: myHeaders })
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            const userList = document.getElementById("userList");
+            userList.innerHTML = ""; // Ryd tidligere indhold
 
-        fetch("https://ergo.mercantec.tech/api/Users", requestOptions)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                const userList = document.getElementById("userList");
-                userList.innerHTML = ""; // Ryd tidligere brugerliste
+            data.forEach(user => {
+                const userCard = document.createElement("div");
+                userCard.classList.add("user-card");
+                
+                // Startopbygning af HTML-strukturen for hvert brugerkort
+                userCard.innerHTML = `
+                    <h3><span id="name-${user.id}">${user.name}</span></h3>
+                    <p><strong>Email:</strong> <span id="email-${user.id}">${user.email}</span></p>
+                    <button id="editButton-${user.id}" onclick="toggleEditUser('${user.id}')">Edit</button>
+                    <button class="delete-button" onclick="deleteUser('${user.id}')">Delete</button>
+                `;
 
-                data.forEach(user => {
-                    const userCard = document.createElement("div");
-                    userCard.classList.add("user-card");
-
-                    userCard.innerHTML = `
-                        <h3>${user.name}</h3>
-                        <p><strong>Email:</strong> ${user.email}</p>
-                        <button class="edit-button" onclick="showEditForm('${user.id}', '${user.name}', '${user.email}', this)">Edit</button>
-                        <button class="delete-button" onclick="deleteUser('${user.id}', this)">Delete</button>
-                    `;
-                    userList.appendChild(userCard);
-                });
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                document.getElementById("userList").textContent = `Could not fetch data: ${error.message}`;
+                userList.appendChild(userCard);
             });
-    }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            document.getElementById("userList").textContent = `Could not fetch data: ${error.message}`;
+        });
+}
 
-    // Funktion til at vise redigeringsformularen
-    window.showEditForm = function(userId, currentName, currentEmail, buttonElement) {
-        const userCard = buttonElement.closest(".user-card");
-
-        userCard.innerHTML = `
-            <input type="text" id="editName" value="${currentName}" placeholder="New name" />
-            <input type="email" id="editEmail" value="${currentEmail}" placeholder="New email" />
-            <button onclick="saveUserEdits('${userId}', this)">Save</button>
-            <button onclick="fetchUserData()">Cancel</button>
-        `;
-    };
-
-    // Opdateret funktion til at gemme brugerændringer med alle nødvendige felter og PUT
-    window.saveUserEdits = function(userId, buttonElement) {
-        const userCard = buttonElement.closest(".user-card");
-        const updatedName = userCard.querySelector("#editName").value;
-        const updatedEmail = userCard.querySelector("#editEmail").value;
-
-        // Først henter vi brugerens nuværende data
+// Funktion til at slette bruger
+function deleteUser(userId) {
+    if (confirm("Er du sikker på, at du vil slette denne bruger?")) {
         fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, {
-            method: "GET",
+            method: "DELETE",
             headers: {
                 "Authorization": `Bearer ${token}`,
                 "Accept": "application/json"
@@ -69,66 +49,68 @@ document.addEventListener("DOMContentLoaded", function() {
         })
         .then(response => {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(existingData => {
-            // Flet opdaterede felter ind i de eksisterende data
-            const updatedData = JSON.stringify({
-                id: existingData.id,
-                name: updatedName,
-                email: updatedEmail,
-                password: existingData.password, // Krævede felter inkluderet
-                salt: existingData.salt,
-                sitSmarts: existingData.sitSmarts,
-                realPassword: existingData.realPassword
-            });
-
-            return fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                },
-                body: updatedData
-            });
-        })
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(data => {
-            console.log("User updated:", data);
-            fetchUserData(); // Opdater listen af brugere
+            fetchUserData(); // Opdater brugerlisten efter sletning
         })
         .catch(error => {
             console.error("Error:", error);
-            alert(`Kunne ikke opdatere brugeren: ${error.message}`);
+            alert(`Kunne ikke slette brugeren: ${error.message}`);
         });
-    };
+    }
+}
 
-    // Funktion til at slette en bruger
-    window.deleteUser = function(userId, buttonElement) {
-        const myHeaders = new Headers();
-        myHeaders.append("Authorization", `Bearer ${token}`);
+// Funktion til at skifte mellem visningstilstand og redigeringstilstand
+function toggleEditUser(userId) {
+    const nameElement = document.getElementById(`name-${userId}`);
+    const emailElement = document.getElementById(`email-${userId}`);
+    const editButton = document.getElementById(`editButton-${userId}`);
 
-        const requestOptions = {
-            method: "DELETE",
-            headers: myHeaders,
-            redirect: "follow"
-        };
+    if (editButton.textContent === "Edit") {
+        // Skift til redigeringstilstand
+        const currentName = nameElement.textContent;
+        const currentEmail = emailElement.textContent;
 
-        fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, requestOptions)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                console.log("User deleted:", userId);
-                fetchUserData(); // Opdater listen af brugere
+        nameElement.innerHTML = `<input type="text" id="editName-${userId}" value="${currentName}">`;
+        emailElement.innerHTML = `<input type="text" id="editEmail-${userId}" value="${currentEmail}">`;
+        editButton.textContent = "Save";
+    } else {
+        // Skift til visningstilstand og gem ændringer
+        const updatedName = document.getElementById(`editName-${userId}`).value;
+        const updatedEmail = document.getElementById(`editEmail-${userId}`).value;
+
+        editUser(userId, updatedName, updatedEmail)
+            .then(() => {
+                // Opdater felter til de nye værdier og afslut redigering
+                nameElement.textContent = updatedName;
+                emailElement.textContent = updatedEmail;
+                editButton.textContent = "Edit";
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert(`Kunne ikke slette brugeren: ${error.message}`);
+                alert(`Kunne ikke opdatere brugeren: ${error.message}`);
             });
-    };
+    }
+}
 
-    // Hent og vis alle brugere ved indlæsning af siden
-    fetchUserData();
-});
+// Funktion til at redigere brugerdata
+function editUser(userId, name, email) {
+    const updatedData = JSON.stringify({
+        id: userId,
+        name: name,
+        email: email
+    });
+
+    return fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, {
+        method: "PUT",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: updatedData
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    });
+}
+
+// Hent brugerdata ved indlæsning af siden
+document.addEventListener("DOMContentLoaded", fetchUserData);
