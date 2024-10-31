@@ -1,13 +1,16 @@
 #include "SitSmart.h"
 #include "Images.h"
 
-SitSmart sitSmart(" ", " ");
+SitSmart sitSmart("GalaxyS22", "password!");
 
 File myFile;
 String fileName = "test.txt";
 
 void setup() {
+  Serial.println("bababab");
   sitSmart.begin();
+
+  Serial.println("aacacacaca");
 
   writeToSD("abab", true);
   readFromSD();
