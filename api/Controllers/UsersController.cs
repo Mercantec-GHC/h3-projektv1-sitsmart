@@ -58,13 +58,11 @@ namespace API.Controllers
         // PUT: api/Users/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(String id, User user)
+        public async Task<IActionResult> PutUser(String id, EditUserDTO editUser)
         {
-            if (id != user.Id)
-            {
-                return BadRequest();
-            }
-
+            var user = await _context.Users.FindAsync(id);
+            user.Email = editUser.Email;
+            user.Name = editUser.Name;
             _context.Entry(user).State = EntityState.Modified;
 
             try
