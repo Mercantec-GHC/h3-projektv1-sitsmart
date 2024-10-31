@@ -21,13 +21,14 @@ class SitSmart {
     const char* password;
     HttpClient* httpClient;
     WiFiSSLClient wifi;
-    String apiUrl = "sit-api.mercantec.tech";
     int status = WL_IDLE_STATUS; 
-    String deviceId = "8d414a937e634a16945e5d17adc5e04a";
     float x, y, z;
     int lastX, lastY, lastZ, lastLength;
     int lastMillis;
     float lastHumidity, lastTemp;
+    String apiUrl = "sitsmart-nk0s.onrender.com";
+    String deviceId = "8d414a937e634a16945e5d17adc5e04a";
+    String fileName = "savedValues.txt";
         
     // API Variables
     String postData[10];
@@ -45,7 +46,8 @@ class SitSmart {
     void addRequestToBatch(String request);
     int getIndexOfInStringArray(String arr[10], String wantedValue);
     void sendAllRequests();
-    void sendAsyncRequest(String body);
+    void writeToSD(String input, bool clearSDFile);
+    void readFromSD();
 };
 
 #endif // SITSMART_H

@@ -9,26 +9,23 @@ void SitSmart::begin() {
   Serial.begin(9600); 
   connectToWiFi();
   drawLogo(0x021D30);
+
+  writeToSD("abab", true);
+  readFromSD();
 }
 
 void SitSmart::connectToWiFi() {
-    // Check for WIFI
-  if (WiFi.status() == WL_NO_MODULE) {
-    Serial.println("Communication with WiFi module failed!");
-
-    // don't continue
-    while (true);
-  }
-
-  while ( status != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
     // Connect to WPA/WPA2 network:
     status = WiFi.begin(ssid, password);
   }
 
-  Serial.print("You're connected to ");
-  Serial.println(ssid);
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("You're connected to ");
+    Serial.println(ssid);
+  }
 
   httpClient = new HttpClient(wifi, apiUrl, 443);
 }
@@ -137,9 +134,10 @@ void SitSmart::sendData(String body) {
   httpClient->beginRequest();
   httpClient->post("/api/TempHumidities");
   httpClient->sendHeader("Content-Type", "application/json");
-  httpClient->sendHeader("Content-Length", sizeof(body));
+  httpClient->sendHeader("Content-Length", body.length());
   httpClient->sendHeader("accept", "text/plain");
   httpClient->beginBody();
+  Serial.println(WiFi.status() == WL_CONNECTED);
   httpClient->print(body);
   httpClient->endRequest();
 
@@ -150,6 +148,8 @@ void SitSmart::sendData(String body) {
   Serial.println(statusCode);
   Serial.print("Response: ");
   Serial.println(response);
+  Serial.print("WiFi: ");
+  Serial.println(WiFi.status() == WL_CONNECTED);
 }
 
 void SitSmart::addRequestToBatch(String request) {
@@ -180,8 +180,40 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 void SitSmart::sendAllRequests() {
   for (int i=0; i < 10; i++) {
     Serial.println(postData[i]);
-    sendData(postData[i]);
+    //sendData(postData[i]);
     postData[i] = "";
   }
   Serial.println("Sent all requests");
+}
+
+void SitSmart::writeToSD(String input, bool clearSDFile) {
+  if (clearSDFile) {
+    SD.remove(fileName);
+  }
+  
+  File myFile = SD.open(fileName, FILE_WRITE);
+
+  if (myFile) {
+    // print to the file
+    myFile.println(input);
+    myFile.close();
+  } else {
+    Serial.println("error1");
+  }
+}
+
+void SitSmart::readFromSD() {
+
+  File myFile = SD.open(fileName);
+  if (myFile) {
+
+    // read from the file
+    while (myFile.available()) {
+      // TODO: save in string instead of printing
+      Serial.write(myFile.read());
+    }
+    myFile.close();
+  } else {
+    Serial.println("error2");
+  }
 }
