@@ -1,15 +1,16 @@
 #include "SitSmart.h"
 
-SitSmart sitSmart("TBF", "TBF");
-
+SitSmart sitSmart;
+NetworkHelper networkHelper;
 
 void setup() {
-  Serial.println("bababab");
+  Serial.println("ab");
   sitSmart.begin();
-
+  Serial.println("ba");
+  
 }
 
 void loop() {
-  //sitSmart.readData();
+  sitSmart.readData();
 }
 
