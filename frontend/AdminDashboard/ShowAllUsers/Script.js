@@ -1,8 +1,57 @@
 // Hent token fra localStorage
-const token = localStorage.getItem("authToken");
+let token = localStorage.getItem("authToken");
+
+// Funktion til at opdatere knapperne baseret på loginstatus
+function updateAuthButtons() {
+    const authButton = document.getElementById("authButton");
+    const signupButton = document.getElementById("signupButton");
+
+    // Tjek om token findes i localStorage
+    token = localStorage.getItem("authToken");
+
+    if (token && !isTokenExpired(token)) {
+        // Hvis token findes og ikke er udløbet (logget ind)
+        authButton.textContent = "Logud";
+        signupButton.style.display = "none"; // Skjuler "Opret"-knappen
+
+        // Ændrer knapfunktion til logud
+        authButton.onclick = () => {
+            localStorage.removeItem("authToken"); // Fjern token ved logud
+            updateAuthButtons(); // Opdater knapper efter logud
+            alert("Du er nu logget ud");
+            window.location.href = "index.html"; // Omdiriger til index.html efter logud
+        };
+    } else {
+        // Hvis token ikke findes eller er udløbet (ikke logget ind)
+        authButton.textContent = "Login";
+        signupButton.style.display = "inline-block"; // Viser "Opret"-knappen igen
+        localStorage.removeItem("authToken"); // Fjern udløbet token
+    }
+}
+
+// Funktion til at kontrollere om token er udløbet
+function isTokenExpired(token) {
+    const expirationTime = getTokenExpiration(token);
+    return Date.now() >= expirationTime;
+}
+
+// Funktion til at få tokenens udløbstidspunkt fra JWT (hvis det er i JWT format)
+function getTokenExpiration(token) {
+    const payloadBase64 = token.split(".")[1];
+    const payload = JSON.parse(atob(payloadBase64));
+    return payload.exp * 1000; // Returner som millisekunder
+}
 
 // Funktion til at hente og vise brugerdata
 function fetchUserData() {
+    if (!token || isTokenExpired(token)) {
+        localStorage.removeItem("authToken"); // Fjern token hvis udløbet
+        alert("Session expired. Please log in again.");
+        updateAuthButtons();
+        window.location.href = "login.html"; // Viderestil til login-siden hvis token er udløbet
+        return;
+    }
+
     const myHeaders = new Headers();
     myHeaders.append("Accept", "application/json");
     myHeaders.append("Authorization", `Bearer ${token}`);
@@ -40,6 +89,14 @@ function fetchUserData() {
 // Funktion til at slette bruger
 function deleteUser(userId) {
     if (confirm("Er du sikker på, at du vil slette denne bruger?")) {
+        if (!token || isTokenExpired(token)) {
+            localStorage.removeItem("authToken");
+            alert("Session expired. Please log in again.");
+            updateAuthButtons();
+            window.location.href = "login.html";
+            return;
+        }
+
         fetch(`https://ergo.mercantec.tech/api/Users/${userId}`, {
             method: "DELETE",
             headers: {
@@ -65,7 +122,6 @@ function toggleEditUser(userId) {
     const editButton = document.getElementById(`editButton-${userId}`);
 
     if (editButton.textContent === "Edit") {
-        // Skift til redigeringstilstand
         const currentName = nameElement.textContent;
         const currentEmail = emailElement.textContent;
 
@@ -73,13 +129,11 @@ function toggleEditUser(userId) {
         emailElement.innerHTML = `<input type="text" id="editEmail-${userId}" value="${currentEmail}">`;
         editButton.textContent = "Save";
     } else {
-        // Skift til visningstilstand og gem ændringer
         const updatedName = document.getElementById(`editName-${userId}`).value;
         const updatedEmail = document.getElementById(`editEmail-${userId}`).value;
 
         editUser(userId, updatedName, updatedEmail)
             .then(() => {
-                // Opdater felter til de nye værdier og afslut redigering
                 nameElement.textContent = updatedName;
                 emailElement.textContent = updatedEmail;
                 editButton.textContent = "Edit";
@@ -112,5 +166,8 @@ function editUser(userId, name, email) {
     });
 }
 
-// Hent brugerdata ved indlæsning af siden
-document.addEventListener("DOMContentLoaded", fetchUserData);
+// Hent brugerdata og opdater knapper ved indlæsning af siden
+document.addEventListener("DOMContentLoaded", function() {
+    updateAuthButtons();
+    if (token && !isTokenExpired(token)) fetchUserData();
+});
