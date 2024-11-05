@@ -3,7 +3,7 @@
 void SitSmart::begin() {
   Serial.begin(9600); 
 
-  carrier.withCase();
+  carrier.noCase();
   carrier.begin();
   drawLogo(0x021D30);
     
@@ -11,6 +11,11 @@ void SitSmart::begin() {
   readFromSD();*/
 
   //networkHelper.begin();
+  networkHelper.connectToWiFi("GalaxyS22", "password1");
+  Serial.println("gets data");
+  networkHelper.getdata();
+  Serial.println("send data");
+  networkHelper.sendData();
 }
 
 // Draw logo
@@ -77,24 +82,17 @@ void SitSmart::handleMovement() {
   {
     // Get values, *100 to round up and remove decimals to make it to an int
     carrier.IMUmodule.readAcceleration(x, y, z);
-    int valueX = x*100;
-    int valueY = y*100;
-    int valueZ = z*100;
+    int valueX = x * 100;
+    int valueY = y * 100;
+    int valueZ = z * 100;
 
     // Check if difference in numeric value is more than 2  
-    if (abs(valueX-lastX) > 2 || abs(valueY-lastY) > 2 || abs(valueZ-lastZ) > 2) {
-      /*Serial.print("x: ");
-      Serial.print(valueX);
+    if (abs(valueX-lastX) > 25 || abs(valueY-lastY) > 25 || abs(valueZ-lastZ) > 25) {
+      Serial.println("new");
+      Serial.println(" x" + String(valueX));
+      Serial.println(" y" + String(valueY));
+      Serial.println(" z" + String(valueZ));
 
-      Serial.print(" - y: ");
-      Serial.print(valueY);
-
-      Serial.print(" - z: ");
-      Serial.println(valueZ);*/
-
-      // SEND VALUE
-      
-      // Save values for next comparison
       lastX = valueX;
       lastY = valueY;
       lastZ = valueZ;
@@ -104,7 +102,7 @@ void SitSmart::handleMovement() {
 
 void SitSmart::readData() {
   // Check if device has wifi connection
-  if (!networkHelper.isConnected()) { 
+  /*if (!networkHelper.isConnected()) { 
     // If no connection use accesspoint to get wifi
     networkHelper.updateStatus();
     networkHelper.setupWebpage();
@@ -115,8 +113,13 @@ void SitSmart::readData() {
     //handleMovement();
     
     delay(100);
+  }*/
+  carrier.Buttons.update();
+  if (carrier.Buttons.onTouchDown(TOUCH2))
+  {
+    Serial.println("abac");
+    //networkHelper.sendData("{ \"temp\": " + String(22) + ", \"humidity\": " + String(40) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }", "/api/TempHumidities");
   }
-
 }
 
 void SitSmart::addRequestToBatch(String request) {
@@ -145,15 +148,14 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 }
 
 void SitSmart::sendAllRequests() {
-  for (int i=0; i < 10; i++) {
-    Serial.println(postData[i]);
-    networkHelper.sendData(postData[i]);
-    postData[i] = "";
-  }
+  //for (int i=0; i < 10; i++) {
+    Serial.println(postData[1]);
+    //networkHelper.sendData(postData[1], "/api/TempHumidities");
+    postData[1] = "";
+  //}
   Serial.println("Sent all requests");
 }
 
-// MOVE TO SD HELPER
 
 void SitSmart::writeToSD(String input, bool clearSDFile) {
   Serial.println("Forsøger at skrive til SD-kort...");

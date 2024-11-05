@@ -17,7 +17,6 @@ void NetworkHelper::begin() {
   }
 
   server.begin();
-  abc = true;
 }
 
 void NetworkHelper::updateStatus() {
@@ -60,11 +59,21 @@ void NetworkHelper::setupWebpage() {
 
           } else if (currentLine.startsWith("GET /connect")) {
               Serial.println(currentLine);
+              // GET /connect?ssid=asdasg&21wag&pass=Merc1234%21 HTTP/1.1
+              
               String givenSSID = currentLine.substring(currentLine.indexOf("=")+1, currentLine.indexOf("&pass"));
               String givenPass = currentLine.substring(currentLine.lastIndexOf("=")+1, currentLine.lastIndexOf(" HTTP"));
-
+              
+              // TODO: MAKE BETTER HEX TO ASCII TRANSLATOR
+              givenSSID.replace("%21", "!");
+              givenPass.replace("%21", "!");
+              
+              Serial.println("ababababab");
+              Serial.println("ssid: " + givenSSID);
+              Serial.println("pass: " + givenPass);
+              
               connectToWiFi(givenSSID, givenPass);
-
+              
               currentLine = "";
           }
           currentLine = "";
@@ -81,8 +90,10 @@ void NetworkHelper::setupWebpage() {
 }
 
 void NetworkHelper::connectToWiFi(String ssid, String password) {
-  Serial.println("connect to wifi");
-  Serial.println("Attempting login with: " + ssid + " and: " + password);
+  ssid = "GalaxyS22";
+  password = "password1";
+
+  Serial.println("Attempting connect with: " + ssid + " and: " + password);
   while (!isConnected()) {
     Serial.print("Attempting to connect to WPA SSID: ");
     Serial.println(ssid);
@@ -100,30 +111,79 @@ void NetworkHelper::connectToWiFi(String ssid, String password) {
   }
 }
 
-void NetworkHelper::sendData(String body) {
-  Serial.println("a");
-  /*httpClient->beginRequest();
-  httpClient->post("/api/TempHumidities");
+/*void NetworkHelper::sendData(String body, String action) {
+
+  httpClient->beginRequest();
+  httpClient->post(action);
   httpClient->sendHeader("Content-Type", "application/json");
   httpClient->sendHeader("Content-Length", body.length());
   httpClient->sendHeader("accept", "text/plain");
   httpClient->beginBody();
-  Serial.println(isConnected());
   httpClient->print(body);
   httpClient->endRequest();
 
   int statusCode = httpClient->responseStatusCode();
-  String response = httpClient->responseBody();
+  //String response = httpClient->responseBody();
 
   Serial.print("Status code: ");
   Serial.println(statusCode);
   Serial.print("Response: ");
   Serial.println(response);
   Serial.print("WiFi: ");
-  Serial.println(isConnected());*/
+  Serial.println(isConnected());
+}*/
+// String body = "{ \"temp\": 22, \"humidity\": 40, \"sitSmartDeviceId\": \"8d414a937e634a16945e5d17adc5e04a\" }";
+void NetworkHelper::sendData() {
+  String postData = "{\"sitSmartDeviceId\": \"8d414a937e634a16945e5d17adc5e04a\",";
+  postData += "\"temp\": 22,";
+  postData += "\"humidity\": 40 }";
+  Serial.println(postData);
+  
+  Serial.print("1");
+  httpClient->beginRequest();
+  Serial.print("2");
+  httpClient->post("/api/TempHumidities");
+  Serial.print("3");
+  httpClient->sendHeader("Content-Type", "application/json");
+  Serial.print("4");
+  httpClient->sendHeader("Content-Length", postData.length());
+  Serial.print("5");
+  httpClient->sendHeader("accept", "text/plain");
+  Serial.print("6");
+  httpClient->beginBody();
+  Serial.print("7");
+  httpClient->print(postData);
+  Serial.print("8");
+  httpClient->endRequest();
+  Serial.print("9");
+  int statusCode = httpClient->responseStatusCode();
+  Serial.println("10");
+  String response = httpClient->responseBody();
+  Serial.print("Status code: ");
+  Serial.println(statusCode);
+  Serial.print("Response: ");
+  Serial.println(response);
+}
+
+void NetworkHelper::getdata() {
+  Serial.print("1");
+  Serial.print("2");
+  Serial.println(isConnected());
+  httpClient->get("/api/TempHumidities");
+  Serial.print("3");
+  Serial.print("4");
+  Serial.print("5");
+  Serial.print("6");
+  Serial.print("9");
+  int statusCode = httpClient->responseStatusCode();
+  Serial.println("10");
+  String response = httpClient->responseBody();
+  Serial.print("Status code: ");
+  Serial.println(statusCode);
+  Serial.print("Response: ");
+  Serial.println(response);
 }
 
 bool NetworkHelper::isConnected() {
-  //Serial.println(String(abc));
   return WiFi.status() == WL_CONNECTED;
 }

@@ -15,15 +15,15 @@ class NetworkHelper {
     HttpClient* httpClient;
     WiFiSSLClient wifi;
     WiFiClient client;
-    bool abc = false;
 
   public:
     void updateStatus();
     void setupWebpage();
     void begin();
     void connectToWiFi(String ssid, String password);
-    void sendData(String body);
+    void sendData(/*String body, String action*/);
     bool isConnected();
+    void getdata();
 };
 
 #endif // NETWORKHELPER_H
