@@ -104,7 +104,7 @@ void SitSmart::handleData() {
       savedPass = savedPass.substring(0, savedPass.indexOf("\""));
 
       // Attempt to connect to wifi
-      connectToWiFi(savedPass, savedSSID);
+      connectToWiFi(savedSSID, savedPass);
     }
 
     // If connecting with saved data failed or no saved data, open own hotspot
@@ -152,7 +152,7 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 
 // sends all requests from saved batch
 void SitSmart::sendAllRequests() {
-  for (int i=0; i < postData.length(); i++) {
+  for (int i=0; i < 10; i++) {
     Serial.println(postData[i]);
     sendData(postData[i], "/api/TempHumidities");
     postData[i] = "";
