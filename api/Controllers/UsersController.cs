@@ -160,9 +160,19 @@ namespace API.Controllers
         }
 
         // TODO: Lav på front end???
-        private bool IsPasswordSecure(String Password)
+        private bool IsPasswordSecure(String password)
         {
-            return new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$").IsMatch(Password);
+            var hasUpperCase = new Regex(@"[A-Z]+");
+            var hasLowerCase = new Regex(@"[a-z]+");
+            var hasDigits = new Regex(@"[0-9]+");
+            var hasSpecialChar = new Regex(@"[\W_]+");
+            var hasMinimum8Chars = new Regex(@".{8,}");
+
+            return hasUpperCase.IsMatch(password)
+                   && hasLowerCase.IsMatch(password)
+                   && hasDigits.IsMatch(password)
+                   && hasSpecialChar.IsMatch(password)
+                   && hasMinimum8Chars.IsMatch(password);
         }
 
         private bool isValidEmail(String Email)
