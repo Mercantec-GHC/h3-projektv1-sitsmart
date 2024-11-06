@@ -90,8 +90,8 @@ void NetworkHelper::setupWebpage() {
 }
 
 void NetworkHelper::connectToWiFi(String ssid, String password) {
-  ssid = "GalaxyS22";
-  password = "password1";
+  ssid = "MAGS-OLC";
+  password = "Merc1234!";
 
   Serial.println("Attempting connect with: " + ssid + " and: " + password);
   while (!isConnected()) {
@@ -155,25 +155,6 @@ void NetworkHelper::sendData() {
   httpClient->print(postData);
   Serial.print("8");
   httpClient->endRequest();
-  Serial.print("9");
-  int statusCode = httpClient->responseStatusCode();
-  Serial.println("10");
-  String response = httpClient->responseBody();
-  Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
-  Serial.println(response);
-}
-
-void NetworkHelper::getdata() {
-  Serial.print("1");
-  Serial.print("2");
-  Serial.println(isConnected());
-  httpClient->get("/api/TempHumidities");
-  Serial.print("3");
-  Serial.print("4");
-  Serial.print("5");
-  Serial.print("6");
   Serial.print("9");
   int statusCode = httpClient->responseStatusCode();
   Serial.println("10");
