@@ -7,7 +7,7 @@
 
 class NetworkHelper {
   private:
-    const char* apiUrl = "sit-api.mercantec.tech"//"sitsmart-nk0s.onrender.com";
+    const char* apiUrl = "sit-api.mercantec.tech";//"sitsmart-nk0s.onrender.com";
     String ssidAP = "SitSmartHotspot";
 
     int status = WL_IDLE_STATUS;
@@ -23,7 +23,6 @@ class NetworkHelper {
     void connectToWiFi(String ssid, String password);
     void sendData(/*String body, String action*/);
     bool isConnected();
-    void getdata();
 };
 
 #endif // NETWORKHELPER_H
