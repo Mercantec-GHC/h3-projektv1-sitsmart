@@ -1,41 +1,29 @@
 #include "SitSmart.h"
 
-SitSmart::SitSmart(const char* ssid, const char* password) 
-  : ssid(ssid), password(password) {}
-
 void SitSmart::begin() {
-  carrier.withCase();
-  carrier.begin();
   Serial.begin(9600); 
-  connectToWiFi();
+
+  carrier.noCase();
+  carrier.begin();
   drawLogo(0x021D30);
+    
+  /*writeToSD("abab", true);
+  readFromSD();*/
 
-  writeToSD("abab", true);
-  readFromSD();
-}
-
-void SitSmart::connectToWiFi() {
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print("Attempting to connect to WPA SSID: ");
-    Serial.println(ssid);
-    // Connect to WPA/WPA2 network:
-    status = WiFi.begin(ssid, password);
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.print("You're connected to ");
-    Serial.println(ssid);
-  }
-
-  httpClient = new HttpClient(wifi, apiUrl, 443);
+  //networkHelper.begin();
+  networkHelper.connectToWiFi("GalaxyS22", "password1");
+  Serial.println("gets data");
+  networkHelper.getdata();
+  Serial.println("send data");
+  networkHelper.sendData();
 }
 
 // Draw logo
 void SitSmart::drawLogo(uint16_t color) {
-  carrier.display.fillScreen(0xFFFF);/*
+  carrier.display.fillScreen(0xFFFF);
   carrier.display.drawBitmap(44, 60, ErgoLogo, 152, 72, color);
   //carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
-  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);*/
+  carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
 
 void SitSmart::handleTempHumid() {
@@ -44,7 +32,6 @@ void SitSmart::handleTempHumid() {
   //////////////////////////////
   float humidity = carrier.Env.readHumidity();
   float temp = carrier.Env.readTemperature();
-  // Remove decimals?
 
   // Print value if it has changed
   if (humidity != lastHumidity || temp != lastTemp) {
@@ -95,24 +82,17 @@ void SitSmart::handleMovement() {
   {
     // Get values, *100 to round up and remove decimals to make it to an int
     carrier.IMUmodule.readAcceleration(x, y, z);
-    int valueX = x*100;
-    int valueY = y*100;
-    int valueZ = z*100;
+    int valueX = x * 100;
+    int valueY = y * 100;
+    int valueZ = z * 100;
 
     // Check if difference in numeric value is more than 2  
-    if (abs(valueX-lastX) > 2 || abs(valueY-lastY) > 2 || abs(valueZ-lastZ) > 2) {
-      /*Serial.print("x: ");
-      Serial.print(valueX);
+    if (abs(valueX-lastX) > 25 || abs(valueY-lastY) > 25 || abs(valueZ-lastZ) > 25) {
+      Serial.println("new");
+      Serial.println(" x" + String(valueX));
+      Serial.println(" y" + String(valueY));
+      Serial.println(" z" + String(valueZ));
 
-      Serial.print(" - y: ");
-      Serial.print(valueY);
-
-      Serial.print(" - z: ");
-      Serial.println(valueZ);*/
-
-      // SEND VALUE
-      
-      // Save values for next comparison
       lastX = valueX;
       lastY = valueY;
       lastZ = valueZ;
@@ -121,35 +101,25 @@ void SitSmart::handleMovement() {
 }
 
 void SitSmart::readData() {
-  handleTempHumid();
-
-  handleDistance();
-
-  handleMovement();
-
-  delay(100);
-}
-
-void SitSmart::sendData(String body) {
-  httpClient->beginRequest();
-  httpClient->post("/api/TempHumidities");
-  httpClient->sendHeader("Content-Type", "application/json");
-  httpClient->sendHeader("Content-Length", body.length());
-  httpClient->sendHeader("accept", "text/plain");
-  httpClient->beginBody();
-  Serial.println(WiFi.status() == WL_CONNECTED);
-  httpClient->print(body);
-  httpClient->endRequest();
-
-  int statusCode = httpClient->responseStatusCode();
-  String response = httpClient->responseBody();
-
-  Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
-  Serial.println(response);
-  Serial.print("WiFi: ");
-  Serial.println(WiFi.status() == WL_CONNECTED);
+  // Check if device has wifi connection
+  /*if (!networkHelper.isConnected()) { 
+    // If no connection use accesspoint to get wifi
+    networkHelper.updateStatus();
+    networkHelper.setupWebpage();
+  } else {
+    // If connection handle all sensors
+    handleTempHumid();
+    handleDistance();
+    //handleMovement();
+    
+    delay(100);
+  }*/
+  carrier.Buttons.update();
+  if (carrier.Buttons.onTouchDown(TOUCH2))
+  {
+    Serial.println("abac");
+    //networkHelper.sendData("{ \"temp\": " + String(22) + ", \"humidity\": " + String(40) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }", "/api/TempHumidities");
+  }
 }
 
 void SitSmart::addRequestToBatch(String request) {
@@ -178,42 +148,63 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
 }
 
 void SitSmart::sendAllRequests() {
-  for (int i=0; i < 10; i++) {
-    Serial.println(postData[i]);
-    //sendData(postData[i]);
-    postData[i] = "";
-  }
+  //for (int i=0; i < 10; i++) {
+    Serial.println(postData[1]);
+    //networkHelper.sendData(postData[1], "/api/TempHumidities");
+    postData[1] = "";
+  //}
   Serial.println("Sent all requests");
 }
 
+
 void SitSmart::writeToSD(String input, bool clearSDFile) {
+  Serial.println("Forsøger at skrive til SD-kort...");
+  Serial.print("Filnavn: ");
+  Serial.println(fileName);
+  
   if (clearSDFile) {
-    SD.remove(fileName);
+    if (SD.exists(fileName)) {
+      Serial.println("Fil findes - forsøger at slette");
+      if (SD.remove(fileName)) {
+        Serial.println("Fil slettet succesfuldt");
+      } else {
+        Serial.println("Kunne ikke slette fil");
+      }
+    }
   }
   
   File myFile = SD.open(fileName, FILE_WRITE);
-
   if (myFile) {
-    // print to the file
     myFile.println(input);
     myFile.close();
   } else {
-    Serial.println("error1");
+    Serial.println("Kunne ikke åbne fil til skrivning");
+    Serial.print("SD-kort status: ");
+    if (!SD.begin(SD_CS)) {
+      Serial.println("SD-kort ikke tilgængeligt");
+    } else {
+      Serial.println("SD-kort er tilgængeligt");
+    }
   }
 }
 
 void SitSmart::readFromSD() {
-
+  Serial.println(fileName);
+  
   File myFile = SD.open(fileName);
   if (myFile) {
-
-    // read from the file
+    String content = "";
     while (myFile.available()) {
-      // TODO: save in string instead of printing
-      Serial.write(myFile.read());
+      content += (char)myFile.read();
     }
+    Serial.println(content);
     myFile.close();
   } else {
-    Serial.println("error2");
+    Serial.println("Kunne ikke åbne fil til læsning");
+    if (SD.exists(fileName)) {
+      Serial.println("Filen findes på SD-kortet");
+    } else {
+      Serial.println("Filen findes ikke på SD-kortet");
+    }
   }
 }
