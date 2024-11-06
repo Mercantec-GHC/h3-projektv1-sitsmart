@@ -10,12 +10,14 @@
 #include <Arduino.h>
 #include <bsec.h>
 #include "Images.h"
-#include "NetworkHelper.h"
 
 class SitSmart {
   private:
     MKRIoTCarrier carrier;
-    NetworkHelper networkHelper;
+    HttpClient* httpClient;
+    WiFiSSLClient wifi;
+    WiFiClient client;
+
 
     float temp;
     float humidity;
@@ -29,6 +31,13 @@ class SitSmart {
     String deviceId = "8d414a937e634a16945e5d17adc5e04a";
     
     String postData[10];
+
+
+    const char* apiUrl = "sit-api.mercantec.tech";//"sitsmart-nk0s.onrender.com";
+    String ssidAP = "SitSmartHotspot";
+
+    int status = WL_IDLE_STATUS;
+
 
   public:
     void begin();
@@ -44,6 +53,12 @@ class SitSmart {
     void sendAllRequests();
     void writeToSD(String input, bool clearSDFile);
     void readFromSD();
+    void updateStatus();
+    void setupWebpage();
+    void beginNetwork();
+    void connectToWiFi(String ssid, String password);
+    void sendData(/*String body, String action*/);
+    bool isConnected();
 };
 
 #endif // SITSMART_H
