@@ -1,4 +1,5 @@
 #include "SitSmart.h"
+WiFiServer server(80);
 
 void SitSmart::begin() {
   Serial.begin(9600); 
@@ -7,28 +8,18 @@ void SitSmart::begin() {
   carrier.begin();
   drawLogo(0x021D30);
     
-  /*writeToSD("abab", true);
-  readFromSD();*/
-
-  //beginNetwork();
-  Serial.println("connect");
-  connectToWiFi("", "");
-  Serial.println("send data");
-  sendData();
+  beginNetwork();
 }
 
 // Draw logo
 void SitSmart::drawLogo(uint16_t color) {
   carrier.display.fillScreen(0xFFFF);
   carrier.display.drawBitmap(44, 60, ErgoLogo, 152, 72, color);
-  //carrier.display.drawBitmap(44, 60, epd_bitmap_nowifi, 152, 72, color);
   carrier.display.drawBitmap(48, 145, ErgoText, 144, 23, color);
 }
 
+// Hande temp and humidity sensor
 void SitSmart::handleTempHumid() {
-  //////////////////////////////
-  /// TEMPERATURE & HUMIDITY ///
-  //////////////////////////////
   float humidity = carrier.Env.readHumidity();
   float temp = carrier.Env.readTemperature();
 
@@ -51,31 +42,27 @@ void SitSmart::handleTempHumid() {
   }
 }
 
+// Handle distance sensor
 void SitSmart::handleDistance() {
-  //////////////////////////////
-  ///        DISTANCE        ///
-  //////////////////////////////
   Ultrasonic ultrasonic(A6);
   long distanceInCm = ultrasonic.MeasureInCentimeters();
   
-  // 
+  // Get time since last request
   int time = millis();
-  if (distanceInCm < 100 && time - lastMillis > 10000) {
-    Serial.print(distanceInCm);
-    Serial.println(" cm");
 
+  // If the change in distance is big enough and it has been more than 10 seconds since last request
+  if (distanceInCm < 100 && time - lastMillis > 10000) {
+    // Create request body and add to batch
     String body = "{ \"distance\": " + String(distanceInCm) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }";
-    //addRequestToBatch(body);
+    addRequestToBatch(body);
 
     lastMillis = time;
     lastLength = distanceInCm;
   }
 }
 
+// Handle movement sensor
 void SitSmart::handleMovement() {
-  //////////////////////////////
-  ///        MOVEMENT        ///
-  //////////////////////////////
   // false is no movement, true is movement
   if (carrier.IMUmodule.accelerationAvailable())
   {
@@ -99,12 +86,33 @@ void SitSmart::handleMovement() {
   }
 }
 
-void SitSmart::readData() {
+// Handles reading all data, connection to wifi and sending data to wifi
+void SitSmart::handleData() {
   // Check if device has wifi connection
-  /*if (!isConnected()) { 
-    // If no connection use accesspoint to get wifi
-    updateStatus();
-    setupWebpage();
+  if (!isConnected()) { 
+    // Check if a wifi has been saved
+    if (SD.exists(fileName)) {
+      // Get saved data
+      String sdContent = readFromSD();
+
+      // Get SSID from saved data
+      String savedSSID = sdContent.substring(sdContent.indexOf("ssid") + 7);
+      savedSSID = savedSSID.substring(0, savedSSID.indexOf("\""));
+      
+      // Get password from saved data
+      String savedPass = sdContent.substring(sdContent.lastIndexOf("=")+2);
+      savedPass = savedPass.substring(0, savedPass.indexOf("\""));
+
+      // Attempt to connect to wifi
+      connectToWiFi(savedPass, savedSSID);
+    }
+
+    // If connecting with saved data failed or no saved data, open own hotspot
+    if (!isConnected()) {
+      // If no connection use accesspoint to get wifi
+      updateStatus();
+      setupWebpage();
+    }
   } else {
     // If connection handle all sensors
     handleTempHumid();
@@ -112,15 +120,10 @@ void SitSmart::readData() {
     //handleMovement();
     
     delay(100);
-  }*/
-  carrier.Buttons.update();
-  if (carrier.Buttons.onTouchDown(TOUCH2))
-  {
-    Serial.println("abac");
-    //sendData("{ \"temp\": " + String(22) + ", \"humidity\": " + String(40) + ", \"sitSmartDeviceId\": \"" + String(deviceId) + "\" }", "/api/TempHumidities");
   }
 }
 
+// adds request to batch
 void SitSmart::addRequestToBatch(String request) {
   int firstEmptySpace = getIndexOfInStringArray(postData, "");
 
@@ -134,6 +137,7 @@ void SitSmart::addRequestToBatch(String request) {
   }
 }
 
+// Gets index of item within array
 int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
   int wantedpos = -1;
 
@@ -146,73 +150,68 @@ int SitSmart::getIndexOfInStringArray(String arr[10], String wantedValue) {
   return wantedpos;
 }
 
+// sends all requests from saved batch
 void SitSmart::sendAllRequests() {
-  //for (int i=0; i < 10; i++) {
-    Serial.println(postData[1]);
-    //sendData(postData[1], "/api/TempHumidities");
-    postData[1] = "";
-  //}
+  for (int i=0; i < postData.length(); i++) {
+    Serial.println(postData[i]);
+    sendData(postData[i], "/api/TempHumidities");
+    postData[i] = "";
+  }
   Serial.println("Sent all requests");
 }
 
 
-void SitSmart::writeToSD(String input, bool clearSDFile) {
-  Serial.println("Forsøger at skrive til SD-kort...");
-  Serial.print("Filnavn: ");
-  Serial.println(fileName);
-  
+// Writes to sd card, can also clear and rewrite entire file
+void SitSmart::writeToSD(String input, bool clearSDFile) {  
   if (clearSDFile) {
     if (SD.exists(fileName)) {
-      Serial.println("Fil findes - forsøger at slette");
       if (SD.remove(fileName)) {
-        Serial.println("Fil slettet succesfuldt");
+        Serial.println("File successfully deleted");
       } else {
-        Serial.println("Kunne ikke slette fil");
+        Serial.println("Error when deleting file");
       }
     }
   }
   
-  File myFile = SD.open(fileName, FILE_WRITE);
-  if (myFile) {
-    myFile.println(input);
-    myFile.close();
+  File SDFile = SD.open(fileName, FILE_WRITE);
+  if (SD.exists(fileName)) {
+    SDFile.println(input);
+    SDFile.close();
   } else {
-    Serial.println("Kunne ikke åbne fil til skrivning");
-    Serial.print("SD-kort status: ");
+    Serial.print("SD status: ");
     if (!SD.begin(SD_CS)) {
-      Serial.println("SD-kort ikke tilgængeligt");
+      Serial.println("Not avaliable");
     } else {
-      Serial.println("SD-kort er tilgængeligt");
+      Serial.println("Avaliable");
     }
   }
 }
 
-void SitSmart::readFromSD() {
-  Serial.println(fileName);
+// Reads data from sd card and returns
+String SitSmart::readFromSD() {
+  String content = "";
   
-  File myFile = SD.open(fileName);
-  if (myFile) {
-    String content = "";
-    while (myFile.available()) {
-      content += (char)myFile.read();
+  File SDFile = SD.open(fileName);
+  if (SD.exists(fileName)) {
+    while (SDFile.available()) {
+      content += (char)SDFile.read();
     }
-    Serial.println(content);
-    myFile.close();
+    SDFile.close();
   } else {
-    Serial.println("Kunne ikke åbne fil til læsning");
     if (SD.exists(fileName)) {
       Serial.println("Filen findes på SD-kortet");
     } else {
       Serial.println("Filen findes ikke på SD-kortet");
     }
   }
+
+  return content;
 }
 
 // NETWORKING
-WiFiServer server(80);
 
+// Initializes network and variables
 void SitSmart::beginNetwork() {
-  Serial.println("network begin");
   if (WiFi.status() == WL_NO_MODULE) {
     while (true);
   }
@@ -229,6 +228,7 @@ void SitSmart::beginNetwork() {
   server.begin();
 }
 
+// Updates status, used for making hotspot webpage
 void SitSmart::updateStatus() {
   if (status != WiFi.status()) {
     status = WiFi.status();
@@ -243,6 +243,7 @@ void SitSmart::updateStatus() {
   client = server.available();
 }
 
+// Makes the page where user can give ssid and password to local network
 void SitSmart::setupWebpage() {
   if (client) {
     String currentLine = "";
@@ -268,8 +269,7 @@ void SitSmart::setupWebpage() {
             break;
 
           } else if (currentLine.startsWith("GET /connect")) {
-              Serial.println(currentLine);
-              // GET /connect?ssid=asdasg&21wag&pass=Merc1234%21 HTTP/1.1
+              // Example: GET /connect?ssid=asdasg&21wag&pass=Merc1234%21 HTTP/1.1
               
               String givenSSID = currentLine.substring(currentLine.indexOf("=")+1, currentLine.indexOf("&pass"));
               String givenPass = currentLine.substring(currentLine.lastIndexOf("=")+1, currentLine.lastIndexOf(" HTTP"));
@@ -277,10 +277,6 @@ void SitSmart::setupWebpage() {
               // TODO: MAKE BETTER HEX TO ASCII TRANSLATOR
               givenSSID.replace("%21", "!");
               givenPass.replace("%21", "!");
-              
-              Serial.println("ababababab");
-              Serial.println("ssid: " + givenSSID);
-              Serial.println("pass: " + givenPass);
               
               connectToWiFi(givenSSID, givenPass);
               
@@ -299,45 +295,51 @@ void SitSmart::setupWebpage() {
   }
 }
 
+// Attempt to connect to wifi with given ssid and password, saves to sd card if connection is made
 void SitSmart::connectToWiFi(String ssid, String password) {
-  ssid = "MAGS-OLC";
-  password = "Merc1234!";
 
   Serial.println("Attempting connect with: " + ssid + " and: " + password);
   while (!isConnected()) {
-    Serial.print("Attempting to connect to WPA SSID: ");
-    Serial.println(ssid);
     // Connect to WPA/WPA2 network:
     WiFi.begin(ssid.c_str(), password.c_str());
   }
 
   if (isConnected()) {
-    Serial.println("connected");
-    //String response = sendData("{}", "/api/SitSmartDevices");
-    String response = "{\"id\": \"ba4dde5fd6f444868b8fe98f7bb06df3\", \"tempHumiditys\": null, \"movements\": null, \"distanceObjects\": null, \"users\": null }";
-    response = response.substring(response.indexOf("\"id\":")+5);
-    Serial.println(response);
-    response = response.substring(1);
-    Serial.println(response);
-/*
-    String id = "abc";
-    File myFile = SD.open(fileName, FILE_WRITE);
+    Serial.println("Connected");
+    String id = "";
+
+    if (SD.exists(fileName)) {
+      String sdContent = readFromSD();
+
+      // Only get id
+      id = sdContent.substring(sdContent.indexOf("\"id\"=") + 7);
+      id = id.substring(0, id.indexOf("\"")-1);
+    }
     
-    if (myFile) {
-      myFile.println("ssid=abc;password=abc;device=\"" + id + "\";");
-      myFile.close();
-      Serial.println("Wrote to sd card");
-    } else {
-      Serial.println("Kunne ikke åbne fil til skrivning");
-    }*/
+    if (!SD.exists(fileName) || id.length() < 25) {
+      // Create new device in database and get ID
+      String response = sendData("{}", "/api/SitSmartDevices");
+
+      // EXAMPLE RESPONSE; NOT TO BE USED IN PRODUCTION
+      response = "{\"id\": \"ba4dde5fd6f444868b8fe98f7bb06df3\", \"tempHumiditys\": null, \"movements\": null, \"distanceObjects\": null, \"users\": null }";
+
+      // GET ID FROM RESPONSE
+      response = response.substring(response.indexOf("\"id\":")+7);
+      id = response.substring(0, response.indexOf("\""));
+    }
+
+
+    String contentToSD = "{ \"id\"=\"" + id + "\",\"ssid\"=\"" + ssid + "\",\"password\"=\"" + password + "\" }";
+    Serial.println("Writing to SD: " + contentToSD);
+
+    writeToSD(contentToSD, true);
   } else {
     Serial.println("failed connection");
-    // TODO: REMOVE FROM FILE ON SD
   }
 }
 
-/*void sendData(String body, String action) {
-
+// Sends given request and returns response, definetly works ;)
+String SitSmart::sendData(String body, String action) {
   httpClient->beginRequest();
   httpClient->post(action);
   httpClient->sendHeader("Content-Type", "application/json");
@@ -346,50 +348,19 @@ void SitSmart::connectToWiFi(String ssid, String password) {
   httpClient->beginBody();
   httpClient->print(body);
   httpClient->endRequest();
-
-  int statusCode = httpClient->responseStatusCode();
-  //String response = httpClient->responseBody();
-
-  Serial.print("Status code: ");
-  Serial.println(statusCode);
-  Serial.print("Response: ");
-  Serial.println(response);
-  Serial.print("WiFi: ");
-  Serial.println(isConnected());
-}*/
-// String body = "{ \"temp\": 22, \"humidity\": 40, \"sitSmartDeviceId\": \"8d414a937e634a16945e5d17adc5e04a\" }";
-void SitSmart::sendData() {
-  String postData = "{\"sitSmartDeviceId\": \"8d414a937e634a16945e5d17adc5e04a\",";
-  postData += "\"temp\": 22,";
-  postData += "\"humidity\": 40 }";
-  Serial.println(postData);
   
-  Serial.print("1");
-  httpClient->beginRequest();
-  Serial.print("2");
-  httpClient->post("/api/TempHumidities");
-  Serial.print("3");
-  httpClient->sendHeader("Content-Type", "application/json");
-  Serial.print("4");
-  httpClient->sendHeader("Content-Length", postData.length());
-  Serial.print("5");
-  httpClient->sendHeader("accept", "text/plain");
-  Serial.print("6");
-  httpClient->beginBody();
-  Serial.print("7");
-  httpClient->print(postData);
-  Serial.print("8");
-  httpClient->endRequest();
-  Serial.print("9");
+  // Gets response and prints in console
   int statusCode = httpClient->responseStatusCode();
-  Serial.println("10");
   String response = httpClient->responseBody();
   Serial.print("Status code: ");
   Serial.println(statusCode);
   Serial.print("Response: ");
   Serial.println(response);
+  return response;
+
 }
 
+// Check if wifi is connected
 bool SitSmart::isConnected() {
   return WiFi.status() == WL_CONNECTED;
 }
