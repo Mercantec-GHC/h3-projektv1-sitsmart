@@ -11,9 +11,8 @@ void SitSmart::begin() {
   readFromSD();*/
 
   //networkHelper.begin();
-  networkHelper.connectToWiFi("GalaxyS22", "password1");
-  Serial.println("gets data");
-  networkHelper.getdata();
+  Serial.println("connect");
+  networkHelper.connectToWiFi("", "");
   Serial.println("send data");
   networkHelper.sendData();
 }

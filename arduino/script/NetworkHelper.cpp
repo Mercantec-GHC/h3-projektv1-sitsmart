@@ -103,8 +103,16 @@ void NetworkHelper::connectToWiFi(String ssid, String password) {
 
   if (isConnected()) {
     Serial.println("connected");
-    // TODO: SAVE TO SD CARD
-    // httpClient = new HttpClient(wifi, apiUrl, 443);
+    String id = getId();
+    
+    File myFile = SD.open(fileName, FILE_WRITE);
+    
+    if (myFile) {
+      myFile.println("ssid=abc;password=abc;device=\"" + + "\";");
+      myFile.close();
+    } else {
+      Serial.println("Kunne ikke åbne fil til skrivning");
+    }
   } else {
     Serial.println("failed connection");
     // TODO: REMOVE FROM FILE ON SD
